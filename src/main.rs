@@ -1,14 +1,18 @@
 mod components;
 mod map;
+mod rect;
 mod systems;
 
-use components::*;
-use map::*;
+pub use components::*;
+pub use map::*;
+pub use rect::Rect;
+pub use systems::*;
+
+use std::cmp::{max, min};
+
 use rltk::{GameState, Rltk, VirtualKeyCode, RGB};
 use specs::prelude::*;
 use specs_derive::Component;
-use std::cmp::{max, min};
-use systems::*;
 
 struct State {
     ecs: World,
@@ -52,11 +56,16 @@ fn main() -> rltk::BError {
     gs.ecs.register::<RightMover>();
     gs.ecs.register::<Player>();
 
-    gs.ecs.insert(new_map());
+    let (rooms, map) = new_map_rooms_and_corridors();
+    gs.ecs.insert(map);
+    let (player_x, player_y) = rooms[0].center();
 
     gs.ecs
         .create_entity()
-        .with(Position { x: 40, y: 25 })
+        .with(Position {
+            x: player_x,
+            y: player_y,
+        })
         .with(Renderable {
             glyph: rltk::to_cp437('@'),
             fg: RGB::named(rltk::YELLOW),
@@ -87,10 +96,10 @@ fn player_input(gs: &mut State, ctx: &mut Rltk) {
     match ctx.key {
         None => {} // Nothing happened
         Some(key) => match key {
-            VirtualKeyCode::W => try_move_player(0, -1, &mut gs.ecs),
-            VirtualKeyCode::A => try_move_player(-1, 0, &mut gs.ecs),
-            VirtualKeyCode::S => try_move_player(0, 1, &mut gs.ecs),
-            VirtualKeyCode::D => try_move_player(1, 0, &mut gs.ecs),
+            VirtualKeyCode::W | VirtualKeyCode::Up => try_move_player(0, -1, &mut gs.ecs),
+            VirtualKeyCode::A | VirtualKeyCode::Left => try_move_player(-1, 0, &mut gs.ecs),
+            VirtualKeyCode::S | VirtualKeyCode::Down => try_move_player(0, 1, &mut gs.ecs),
+            VirtualKeyCode::D | VirtualKeyCode::Right => try_move_player(1, 0, &mut gs.ecs),
             _ => {}
         },
     }
