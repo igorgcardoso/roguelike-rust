@@ -1,4 +1,4 @@
-pub mod right_walker;
+pub mod visibility_system;
+pub use visibility_system::*;
 
 pub use super::*;
-pub use right_walker::*;

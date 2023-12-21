@@ -1,10 +1,12 @@
 mod components;
 mod map;
+mod player;
 mod rect;
 mod systems;
 
 pub use components::*;
 pub use map::*;
+pub use player::*;
 pub use rect::Rect;
 pub use systems::*;
 
@@ -14,7 +16,7 @@ use rltk::{GameState, Rltk, VirtualKeyCode, RGB};
 use specs::prelude::*;
 use specs_derive::Component;
 
-struct State {
+pub struct State {
     ecs: World,
 }
 
@@ -25,8 +27,7 @@ impl GameState for State {
         self.run_systems();
         player_input(self, ctx);
 
-        let map = self.ecs.fetch::<Vec<TileType>>();
-        draw_map(&map, ctx);
+        draw_map(&self.ecs, ctx);
 
         let positions = self.ecs.read_storage::<Position>();
         let renderables = self.ecs.read_storage::<Renderable>();
@@ -39,8 +40,8 @@ impl GameState for State {
 
 impl State {
     fn run_systems(&mut self) {
-        let mut rw = RightWalker {};
-        rw.run_now(&self.ecs);
+        let mut vis = VisibilitySystem {};
+        vis.run_now(&self.ecs);
         self.ecs.maintain();
     }
 }
@@ -55,10 +56,11 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Renderable>();
     gs.ecs.register::<RightMover>();
     gs.ecs.register::<Player>();
+    gs.ecs.register::<Viewshed>();
 
-    let (rooms, map) = new_map_rooms_and_corridors();
+    let map = Map::new_map_rooms_and_corridors();
+    let (player_x, player_y) = map.rooms[0].center();
     gs.ecs.insert(map);
-    let (player_x, player_y) = rooms[0].center();
 
     gs.ecs
         .create_entity()
@@ -72,35 +74,12 @@ fn main() -> rltk::BError {
             bg: RGB::named(rltk::BLACK),
         })
         .with(Player {})
+        .with(Viewshed {
+            visible_tiles: Vec::new(),
+            range: 8,
+            dirty: true,
+        })
         .build();
 
     rltk::main_loop(context, gs)
-}
-
-fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
-    let mut positions = ecs.write_storage::<Position>();
-    let mut players = ecs.write_storage::<Player>();
-    let map = ecs.fetch::<Vec<TileType>>();
-
-    for (_player, pos) in (&mut players, &mut positions).join() {
-        let destination_idx = xy_idx(pos.x + delta_x, pos.y + delta_y);
-        if map[destination_idx] != TileType::Wall {
-            pos.x = min(79, max(0, pos.x + delta_x));
-            pos.y = min(49, max(0, pos.y + delta_y));
-        }
-    }
-}
-
-fn player_input(gs: &mut State, ctx: &mut Rltk) {
-    // Player movement
-    match ctx.key {
-        None => {} // Nothing happened
-        Some(key) => match key {
-            VirtualKeyCode::W | VirtualKeyCode::Up => try_move_player(0, -1, &mut gs.ecs),
-            VirtualKeyCode::A | VirtualKeyCode::Left => try_move_player(-1, 0, &mut gs.ecs),
-            VirtualKeyCode::S | VirtualKeyCode::Down => try_move_player(0, 1, &mut gs.ecs),
-            VirtualKeyCode::D | VirtualKeyCode::Right => try_move_player(1, 0, &mut gs.ecs),
-            _ => {}
-        },
-    }
 }
