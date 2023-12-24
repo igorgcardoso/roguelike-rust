@@ -135,7 +135,7 @@ pub fn draw_map(ecs: &World, ctx: &mut Rltk) {
                 }
                 TileType::Wall => {
                     glyph = rltk::to_cp437('#');
-                    fg = RGB::from_f32(0., 0., 1.);
+                    fg = RGB::from_f32(0., 5., 8.);
                 }
             }
             if !map.visible_tiles[idx] {
