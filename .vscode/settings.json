@@ -1,3 +1,18 @@
 {
-  "cSpell.words": ["rltk", "viewshed", "Viewshed"]
+  "cSpell.words": [
+    "greyscale",
+    "mapindex",
+    "newrunstate",
+    "pathing",
+    "ppos",
+    "Renderable",
+    "renderables",
+    "rltk",
+    "Roguelike",
+    "runstate",
+    "runwriter",
+    "viewshed",
+    "Viewshed",
+    "viewsheds"
+  ]
 }
