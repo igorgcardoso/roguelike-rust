@@ -13,4 +13,7 @@ pub use melee_combat_system::*;
 pub mod damage_system;
 pub use damage_system::*;
 
+pub mod inventory_system;
+pub use inventory_system::*;
+
 pub use super::*;
