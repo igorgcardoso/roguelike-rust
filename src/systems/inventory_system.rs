@@ -168,7 +168,7 @@ impl<'a> System<'a> for ItemUseSystem {
                 match causes_confusion {
                     None => {}
                     Some(confusion) => {
-                        used_item = false;
+                        // used_item = false;
                         for mob in targets.iter() {
                             add_confusion.push((*mob, confusion.turns));
                             if entity == *player_entity {

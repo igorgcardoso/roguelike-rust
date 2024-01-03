@@ -16,4 +16,7 @@ pub use damage_system::*;
 pub mod inventory_system;
 pub use inventory_system::*;
 
+pub mod saveload_system;
+pub use saveload_system::*;
+
 pub use super::*;

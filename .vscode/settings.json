@@ -11,6 +11,9 @@
     "Roguelike",
     "runstate",
     "runwriter",
+    "saveload",
+    "Saveload",
+    "useitem",
     "viewshed",
     "Viewshed",
     "viewsheds"
