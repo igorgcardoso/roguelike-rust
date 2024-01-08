@@ -118,6 +118,7 @@ pub fn player_input(gs: &mut State, ctx: &mut Rltk) -> RunState {
                 }
             }
             VirtualKeyCode::Space => return skip_turn(&mut gs.ecs),
+            VirtualKeyCode::R => return RunState::ShowRemoveItem,
             _ => return RunState::AwaitingInput,
         },
     }
