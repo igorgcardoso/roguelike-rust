@@ -7,7 +7,7 @@ pub fn cull_dead_particle(ecs: &mut World, ctx: &Rltk) {
         // Age out particles
         let mut particles = ecs.write_storage::<ParticleLifetime>();
         let entities = ecs.entities();
-        for (entity, mut particle) in (&entities, &mut particles).join() {
+        for (entity, particle) in (&entities, &mut particles).join() {
             particle.lifetime_ms -= ctx.frame_time_ms;
             if particle.lifetime_ms < 0.0 {
                 dead_particles.push(entity);
