@@ -149,7 +149,7 @@ impl<'a> System<'a> for ItemUseSystem {
                     let target_slot = can_equip.slot;
                     let target = targets[0];
 
-                    // Remvoe any items the target has in the item's slot
+                    // Remove any items the target has in the item's slot
                     let mut to_unequip: Vec<Entity> = Vec::new();
                     for (item_entity, already_equipped, name) in
                         (&entities, &equipped, &names).join()
@@ -385,11 +385,11 @@ impl<'a> System<'a> for ItemRemoveSystem {
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (entities, mut wants_remove, mut equipped, mut backapack) = data;
+        let (entities, mut wants_remove, mut equipped, mut backpack) = data;
 
         for (entity, to_remove) in (&entities, &wants_remove).join() {
             equipped.remove(to_remove.item);
-            backapack
+            backpack
                 .insert(to_remove.item, InBackpack { owner: entity })
                 .expect("Unable to insert backpack");
         }

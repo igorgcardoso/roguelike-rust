@@ -15,9 +15,11 @@
     "runwriter",
     "saveload",
     "Saveload",
+    "unequip",
     "useitem",
     "viewshed",
     "Viewshed",
-    "viewsheds"
+    "viewsheds",
+    "worldmap"
   ]
 }
