@@ -80,7 +80,7 @@ impl<'a> System<'a> for ItemUseSystem {
         let (
             player_entity,
             mut log,
-            mut map,
+            map,
             entities,
             mut wants_use,
             names,
