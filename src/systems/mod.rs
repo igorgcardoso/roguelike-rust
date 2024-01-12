@@ -22,4 +22,7 @@ pub use saveload_system::*;
 pub mod particle_system;
 pub use particle_system::*;
 
+pub mod hunger_system;
+pub use hunger_system::*;
+
 pub use super::*;

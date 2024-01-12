@@ -262,6 +262,9 @@ impl State {
         let mut item_remove = ItemRemoveSystem {};
         item_remove.run_now(&self.ecs);
 
+        let mut hunger = HungerSystem {};
+        hunger.run_now(&self.ecs);
+
         let mut particles = particle_system::ParticleSpawnSystem {};
         particles.run_now(&self.ecs);
 
@@ -446,6 +449,8 @@ fn main() -> rltk::BError {
     gs.ecs.register::<DefenseBonus>();
     gs.ecs.register::<WantsToRemoveItem>();
     gs.ecs.register::<ParticleLifetime>();
+    gs.ecs.register::<HungerClock>();
+    gs.ecs.register::<ProvidesFood>();
 
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
     gs.ecs.insert(particle_system::ParticleBuilder::new());
