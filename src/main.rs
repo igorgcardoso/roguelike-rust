@@ -55,6 +55,7 @@ impl GameState for State {
         }
 
         ctx.cls();
+        particle_system::cull_dead_particle(&mut self.ecs, ctx);
 
         match newrunstate {
             RunState::MainMenu { .. } => {}
@@ -261,6 +262,9 @@ impl State {
         let mut item_remove = ItemRemoveSystem {};
         item_remove.run_now(&self.ecs);
 
+        let mut particles = particle_system::ParticleSpawnSystem {};
+        particles.run_now(&self.ecs);
+
         self.ecs.maintain();
     }
 }
@@ -441,8 +445,10 @@ fn main() -> rltk::BError {
     gs.ecs.register::<MeleePowerBonus>();
     gs.ecs.register::<DefenseBonus>();
     gs.ecs.register::<WantsToRemoveItem>();
+    gs.ecs.register::<ParticleLifetime>();
 
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
+    gs.ecs.insert(particle_system::ParticleBuilder::new());
 
     let map = Map::new_map_rooms_and_corridors(1);
     let (player_x, player_y) = map.rooms[0].center();

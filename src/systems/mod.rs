@@ -19,4 +19,7 @@ pub use inventory_system::*;
 pub mod saveload_system;
 pub use saveload_system::*;
 
+pub mod particle_system;
+pub use particle_system::*;
+
 pub use super::*;
