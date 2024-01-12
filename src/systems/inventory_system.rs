@@ -1,8 +1,8 @@
 use super::{
     gamelog::GameLog, AreaOfEffect, CombatStats, Confusion, Consumable, Equippable, Equipped,
-    HungerClock, HungerState, InBackpack, InflictsDamage, Map, Name, ParticleBuilder, Position,
-    ProvidesFood, ProvidesHealing, SufferDamage, WantsToDropItem, WantsToPickupItem,
-    WantsToRemoveItem, WantsToUseItem,
+    HungerClock, HungerState, InBackpack, InflictsDamage, MagicMapper, Map, Name, ParticleBuilder,
+    Position, ProvidesFood, ProvidesHealing, RunState, SufferDamage, WantsToDropItem,
+    WantsToPickupItem, WantsToRemoveItem, WantsToUseItem,
 };
 use specs::prelude::*;
 
@@ -53,7 +53,7 @@ impl<'a> System<'a> for ItemUseSystem {
     type SystemData = (
         ReadExpect<'a, Entity>,
         WriteExpect<'a, GameLog>,
-        ReadExpect<'a, Map>,
+        WriteExpect<'a, Map>,
         Entities<'a>,
         WriteStorage<'a, WantsToUseItem>,
         ReadStorage<'a, Name>,
@@ -71,6 +71,8 @@ impl<'a> System<'a> for ItemUseSystem {
         ReadStorage<'a, Position>,
         ReadStorage<'a, ProvidesFood>,
         WriteStorage<'a, HungerClock>,
+        ReadStorage<'a, MagicMapper>,
+        WriteExpect<'a, RunState>,
     );
 
     #[allow(clippy::cognitive_complexity)]
@@ -78,7 +80,7 @@ impl<'a> System<'a> for ItemUseSystem {
         let (
             player_entity,
             mut log,
-            map,
+            mut map,
             entities,
             mut wants_use,
             names,
@@ -96,6 +98,8 @@ impl<'a> System<'a> for ItemUseSystem {
             positions,
             provides_food,
             mut hunger_clock,
+            magic_mapper,
+            mut runstate,
         ) = data;
 
         for (entity, useitem) in (&entities, &wants_use).join() {
@@ -203,6 +207,16 @@ impl<'a> System<'a> for ItemUseSystem {
                             names.get(useitem.item).unwrap().name
                         ));
                     }
+                }
+            }
+            // If it is a magic mapper...
+            let is_mapper = magic_mapper.get(useitem.item);
+            match is_mapper {
+                None => {}
+                Some(_) => {
+                    used_item = true;
+                    log.entries.push("The map is revealed to you!".to_string());
+                    *runstate = RunState::MagicMapReveal { row: 0 };
                 }
             }
             // If it heals, apply the healing
