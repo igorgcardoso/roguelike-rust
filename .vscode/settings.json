@@ -31,5 +31,6 @@
     "Viewshed",
     "viewsheds",
     "worldmap"
-  ]
+  ],
+  "rust-analyzer.showUnlinkedFileNotification": false
 }
