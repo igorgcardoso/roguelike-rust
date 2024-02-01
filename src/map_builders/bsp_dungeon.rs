@@ -1,8 +1,8 @@
 use specs::World;
 
-use crate::SHOW_MAPGEN_VISUALIZER;
-
-use super::{apply_room_to_map, spawner, Map, MapBuilder, Position, Rect, TileType};
+use super::{
+    apply_room_to_map, spawner, Map, MapBuilder, Position, Rect, TileType, SHOW_MAPGEN_VISUALIZER,
+};
 
 pub struct BspDungeonBuilder {
     map: Map,
