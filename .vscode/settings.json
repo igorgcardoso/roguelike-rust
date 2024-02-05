@@ -30,6 +30,8 @@
     "viewshed",
     "Viewshed",
     "viewsheds",
+    "voronoi",
+    "Voronoi",
     "worldmap"
   ],
   "rust-analyzer.showUnlinkedFileNotification": false
