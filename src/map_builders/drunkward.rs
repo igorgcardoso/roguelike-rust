@@ -29,11 +29,11 @@ pub struct DrunkardsWalkBuilder {
 }
 
 impl MapBuilder for DrunkardsWalkBuilder {
-    fn get_map(&mut self) -> Map {
+    fn get_map(&self) -> Map {
         self.map.clone()
     }
 
-    fn get_starting_position(&mut self) -> Position {
+    fn get_starting_position(&self) -> Position {
         self.starting_position.clone()
     }
 
@@ -78,7 +78,7 @@ impl DrunkardsWalkBuilder {
         Self::new(
             new_depth,
             DrunkardSettings {
-                spawn_mode: DrunkSpawnMode::Random,
+                spawn_mode: DrunkSpawnMode::StartingPosition,
                 drunken_lifetime: 400,
                 floor_percent: 0.5,
             },
