@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 
 use super::{
-    generate_voronoi_spawn_regions, paint, remove_unreachable_areas_returning_most_distant,
-    spawner, Map, MapBuilder, Position, Symmetry, TileType, SHOW_MAPGEN_VISUALIZER,
+    count_floor_tile, generate_voronoi_spawn_regions, paint,
+    remove_unreachable_areas_returning_most_distant, spawner, Map, MapBuilder, Position, Symmetry,
+    TileType, SHOW_MAPGEN_VISUALIZER,
 };
 use rltk::RandomNumberGenerator;
 use specs::prelude::*;
@@ -157,7 +158,7 @@ impl DrunkardsWalkBuilder {
 
         let total_tiles = self.map.width * self.map.height;
         let desired_floor_tiles = (self.settings.floor_percent * total_tiles as f32) as usize;
-        let mut floor_tile_count = self.count_floor_tile();
+        let mut floor_tile_count = count_floor_tile(&self.map);
         let mut digger_count = 0;
         let mut active_digger_count = 0;
 
@@ -233,7 +234,7 @@ impl DrunkardsWalkBuilder {
                     *t = TileType::Floor;
                 }
             }
-            floor_tile_count = self.count_floor_tile();
+            floor_tile_count = count_floor_tile(&self.map);
         }
 
         rltk::console::log(format!(
@@ -251,14 +252,5 @@ impl DrunkardsWalkBuilder {
 
         // Now we build a noise map for use in spawning entities later
         self.noise_areas = generate_voronoi_spawn_regions(&self.map, &mut rng);
-    }
-
-    /// Count how many floor tiles are in the map
-    fn count_floor_tile(&self) -> usize {
-        self.map
-            .tiles
-            .iter()
-            .filter(|a| **a == TileType::Floor)
-            .count()
     }
 }

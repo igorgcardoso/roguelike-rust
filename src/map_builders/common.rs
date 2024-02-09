@@ -86,6 +86,11 @@ pub fn generate_voronoi_spawn_regions(
     noise_areas
 }
 
+/// Count how many floor tiles are in the map
+pub fn count_floor_tile(map: &Map) -> usize {
+    map.tiles.iter().filter(|a| **a == TileType::Floor).count()
+}
+
 #[derive(PartialEq, Copy, Clone)]
 pub enum Symmetry {
     None,

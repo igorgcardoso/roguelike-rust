@@ -1,6 +1,7 @@
 use super::{
-    generate_voronoi_spawn_regions, paint, remove_unreachable_areas_returning_most_distant,
-    spawner, Map, MapBuilder, Position, Symmetry, TileType, SHOW_MAPGEN_VISUALIZER,
+    count_floor_tile, generate_voronoi_spawn_regions, paint,
+    remove_unreachable_areas_returning_most_distant, spawner, Map, MapBuilder, Position, Symmetry,
+    TileType, SHOW_MAPGEN_VISUALIZER,
 };
 use rltk::RandomNumberGenerator;
 use specs::prelude::*;
@@ -123,12 +124,7 @@ impl DLABuilder {
         // Random walker
         let total_tiles = self.map.width * self.map.height;
         let desired_floor_tiles = (self.floor_percent * total_tiles as f32) as usize;
-        let mut floor_tile_count = self
-            .map
-            .tiles
-            .iter()
-            .filter(|a| **a == TileType::Floor)
-            .count();
+        let mut floor_tile_count = count_floor_tile(&self.map);
         let mut iteration = 0;
         while floor_tile_count < desired_floor_tiles {
             match self.algorithm {
@@ -246,12 +242,7 @@ impl DLABuilder {
             if iteration % 10 == 0 {
                 self.take_snapshot();
             }
-            floor_tile_count = self
-                .map
-                .tiles
-                .iter()
-                .filter(|a| **a == TileType::Floor)
-                .count();
+            floor_tile_count = count_floor_tile(&self.map);
             iteration += 1;
         }
 

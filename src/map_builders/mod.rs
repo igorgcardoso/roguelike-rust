@@ -6,6 +6,7 @@ mod dla;
 mod drunkward;
 mod maze;
 mod simple;
+mod voronoi;
 
 use self::dla::DLABuilder;
 
