@@ -1,9 +1,11 @@
 {
   "cSpell.words": [
+    "Chebyshev",
     "deleteme",
     "equippable",
     "gamelog",
     "greyscale",
+    "insectoid",
     "longsword",
     "Longsword",
     "mapcopy",
@@ -14,6 +16,7 @@
     "pathing",
     "playerpos",
     "ppos",
+    "pythagoras",
     "Renderable",
     "renderables",
     "rltk",

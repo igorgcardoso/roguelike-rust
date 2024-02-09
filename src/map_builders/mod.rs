@@ -8,17 +8,17 @@ mod maze;
 mod simple;
 mod voronoi;
 
-use self::dla::DLABuilder;
-
 use super::{spawner, Map, Position, Rect, TileType, SHOW_MAPGEN_VISUALIZER};
 use bsp_dungeon::BspDungeonBuilder;
 use bsp_interior::BspInteriorBuilder;
 use cellular_automata::CellularAutomataBuilder;
 use common::*;
+use dla::DLABuilder;
 use drunkward::DrunkardsWalkBuilder;
 use maze::MazeBuilder;
 use simple::SimpleMapBuilder;
 use specs::prelude::*;
+use voronoi::VoronoiCellBuilder;
 
 pub trait MapBuilder {
     fn build_map(&mut self);
@@ -31,7 +31,7 @@ pub trait MapBuilder {
 
 pub fn random_builder(new_depth: i32) -> Box<dyn MapBuilder> {
     let mut rng = rltk::RandomNumberGenerator::new();
-    let builder = rng.roll_dice(1, 14);
+    let builder = rng.roll_dice(1, 16);
     match builder {
         1 => Box::new(BspDungeonBuilder::new(new_depth)),
         2 => Box::new(BspInteriorBuilder::new(new_depth)),
@@ -46,6 +46,8 @@ pub fn random_builder(new_depth: i32) -> Box<dyn MapBuilder> {
         11 => Box::new(DLABuilder::walk_outwards(new_depth)),
         12 => Box::new(DLABuilder::central_attractor(new_depth)),
         13 => Box::new(DLABuilder::insectoid(new_depth)),
+        14 => Box::new(VoronoiCellBuilder::pythagoras(new_depth)),
+        15 => Box::new(VoronoiCellBuilder::manhattan(new_depth)),
         _ => Box::new(SimpleMapBuilder::new(new_depth)),
     }
 }
