@@ -1,7 +1,9 @@
 {
   "cSpell.words": [
     "Chebyshev",
+    "dedupe",
     "deleteme",
+    "drunkward",
     "equippable",
     "gamelog",
     "greyscale",
@@ -10,6 +12,9 @@
     "Longsword",
     "mapcopy",
     "MAPCOUNT",
+    "mapgen",
+    "MAPGEN",
+    "MAPHEIGHT",
     "mapindex",
     "MAPWIDTH",
     "newrunstate",
