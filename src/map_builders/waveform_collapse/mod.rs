@@ -1,6 +1,5 @@
 mod common;
 mod constraints;
-mod image_loader;
 mod solver;
 
 use constraints::{build_patterns, patterns_to_constraints};
@@ -12,7 +11,6 @@ use super::{
 };
 use common::MapChunk;
 use constraints::render_pattern_to_map;
-use image_loader::load_rex_map;
 use rltk::RandomNumberGenerator;
 use solver::Solver;
 use specs::prelude::*;
@@ -31,6 +29,7 @@ pub struct WaveformCollapseBuilder {
     noise_areas: HashMap<i32, Vec<usize>>,
     mode: WaveformMode,
     derive_from: Option<Box<dyn MapBuilder>>,
+    spawn_list: Vec<(usize, String)>,
 }
 
 impl MapBuilder for WaveformCollapseBuilder {
@@ -50,10 +49,8 @@ impl MapBuilder for WaveformCollapseBuilder {
         self.build();
     }
 
-    fn spawn_entities(&mut self, ecs: &mut World) {
-        for area in self.noise_areas.iter() {
-            spawner::spawn_region(ecs, area.1, self.depth);
-        }
+    fn get_spawn_list(&self) -> &Vec<(usize, String)> {
+        &self.spawn_list
     }
 
     fn take_snapshot(&mut self) {
@@ -81,11 +78,8 @@ impl WaveformCollapseBuilder {
             noise_areas: HashMap::new(),
             mode,
             derive_from,
+            spawn_list: Vec::new(),
         }
-    }
-
-    pub fn test_map(new_depth: i32) -> Self {
-        Self::new(new_depth, WaveformMode::TestMap, None)
     }
 
     pub fn derived_map(new_depth: i32, builder: Box<dyn MapBuilder>) -> Self {
@@ -93,13 +87,6 @@ impl WaveformCollapseBuilder {
     }
 
     fn build(&mut self) {
-        if self.mode == WaveformMode::TestMap {
-            self.map = load_rex_map(
-                self.depth,
-                &rltk::rex::XpFile::from_resource("../../../resources/wfc-demo1.xp").unwrap(),
-            );
-            return;
-        }
         let mut rng = RandomNumberGenerator::new();
 
         const CHUNK_SIZE: i32 = 8;
@@ -156,6 +143,17 @@ impl WaveformCollapseBuilder {
 
         // Now we build a noise map for use in spawning entities later
         self.noise_areas = generate_voronoi_spawn_regions(&self.map, &mut rng);
+
+        // Spawn the entities
+        for area in self.noise_areas.iter() {
+            spawner::spawn_region(
+                &self.map,
+                &mut rng,
+                area.1,
+                self.depth,
+                &mut self.spawn_list,
+            );
+        }
     }
 
     fn render_tile_gallery(&mut self, constraints: &Vec<MapChunk>, chunk_size: i32) {
