@@ -233,10 +233,10 @@ pub fn show_inventory(gs: &mut State, ctx: &mut Rltk) -> (ItemMenuResult, Option
     );
 
     let mut equippable: Vec<Entity> = Vec::new();
-    let mut j = 0;
-    for (entity, _pack, name) in (&entities, &backpack, &names)
+    for (j, (entity, _pack, name)) in (&entities, &backpack, &names)
         .join()
         .filter(|item| item.1.owner == *player_entity)
+        .enumerate()
     {
         ctx.set(
             17,
@@ -263,7 +263,6 @@ pub fn show_inventory(gs: &mut State, ctx: &mut Rltk) -> (ItemMenuResult, Option
         ctx.print(21, y, &name.name.to_string());
         equippable.push(entity);
         y += 1;
-        j += 1;
     }
 
     match ctx.key {
@@ -320,10 +319,10 @@ pub fn drop_item_menu(gs: &mut State, ctx: &mut Rltk) -> (ItemMenuResult, Option
     );
 
     let mut equippable: Vec<Entity> = Vec::new();
-    let mut j = 0;
-    for (entity, _pack, name) in (&entities, &backpack, &names)
+    for (j, (entity, _pack, name)) in (&entities, &backpack, &names)
         .join()
         .filter(|item| item.1.owner == *player_entity)
+        .enumerate()
     {
         ctx.set(
             17,
@@ -350,7 +349,6 @@ pub fn drop_item_menu(gs: &mut State, ctx: &mut Rltk) -> (ItemMenuResult, Option
         ctx.print(21, y, &name.name.to_string());
         equippable.push(entity);
         y += 1;
-        j += 1;
     }
 
     match ctx.key {
@@ -419,10 +417,8 @@ pub fn ranged_target(
                 Some(Point::new(mouse_pos.0, mouse_pos.1)),
             );
         }
-    } else {
-        if ctx.left_click {
-            return (ItemMenuResult::Cancel, None);
-        }
+    } else if ctx.left_click {
+        return (ItemMenuResult::Cancel, None);
     }
 
     (ItemMenuResult::NoResponse, None)
@@ -622,10 +618,10 @@ pub fn remove_item_menu(gs: &mut State, ctx: &mut Rltk) -> (ItemMenuResult, Opti
     );
 
     let mut equippable: Vec<Entity> = Vec::new();
-    let mut j = 0;
-    for (entity, _pack, name) in (&entities, &backpack, &names)
+    for (j, (entity, _pack, name)) in (&entities, &backpack, &names)
         .join()
         .filter(|item| item.1.owner == *player_entity)
+        .enumerate()
     {
         ctx.set(
             17,
@@ -652,7 +648,6 @@ pub fn remove_item_menu(gs: &mut State, ctx: &mut Rltk) -> (ItemMenuResult, Opti
         ctx.print(21, y, &name.name.to_string());
         equippable.push(entity);
         y += 1;
-        j += 1;
     }
 
     match ctx.key {

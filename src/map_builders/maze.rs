@@ -225,7 +225,7 @@ impl<'a> Grid<'a> {
             match next {
                 Some(next) => {
                     self.cells[next].visited = true;
-                    self.backtrace.push(self.current as usize);
+                    self.backtrace.push(self.current);
                     //   __lower_part__      __higher_part_
                     //   /            \      /            \
                     // --------cell1------ | cell2-----------

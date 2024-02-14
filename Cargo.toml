@@ -1,5 +1,5 @@
 [package]
-name = "roguelike-rust2"
+name = "roguelike-rust"
 version = "0.1.0"
 edition = "2021"
 

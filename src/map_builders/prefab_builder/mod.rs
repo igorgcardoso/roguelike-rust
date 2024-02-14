@@ -115,7 +115,7 @@ impl PrefabBuilder {
 
     fn build(&mut self) {
         match self.mode {
-            PrefabMode::RexLevel { template } => self.load_rex_map(&template),
+            PrefabMode::RexLevel { template } => self.load_rex_map(template),
             PrefabMode::Constant { level } => self.load_ascii_map(&level),
             PrefabMode::Sectional { section } => self.apply_sectional(&section),
             PrefabMode::RoomVaults => self.apply_room_vaults(),
@@ -171,10 +171,7 @@ impl PrefabBuilder {
                 let x = idx as i32 % self.map.width;
                 let y = idx as i32 / self.map.width;
                 self.map.tiles[idx] = TileType::Floor;
-                self.starting_position = Position {
-                    x: x as i32,
-                    y: y as i32,
-                };
+                self.starting_position = Position { x, y };
             }
             '>' => self.map.tiles[idx] = TileType::DownStairs,
             'g' => {
@@ -257,23 +254,17 @@ impl PrefabBuilder {
         let string_vec = PrefabBuilder::read_ascii_to_vec(section.template);
 
         // Place the new section
-        let chunk_x;
-        match section.placement.0 {
-            HorizontalPlacement::Left => chunk_x = 0,
-            HorizontalPlacement::Center => {
-                chunk_x = (self.map.width / 2) - (section.width as i32 / 2)
-            }
-            HorizontalPlacement::Right => chunk_x = (self.map.width - 1) - section.width as i32,
-        }
+        let chunk_x = match section.placement.0 {
+            HorizontalPlacement::Left => 0,
+            HorizontalPlacement::Center => (self.map.width / 2) - (section.width as i32 / 2),
+            HorizontalPlacement::Right => (self.map.width - 1) - section.width as i32,
+        };
 
-        let chunk_y;
-        match section.placement.1 {
-            VerticalPlacement::Top => chunk_y = 0,
-            VerticalPlacement::Center => {
-                chunk_y = (self.map.height / 2) - (section.height as i32 / 2)
-            }
-            VerticalPlacement::Bottom => chunk_y = (self.map.height - 1) - section.height as i32,
-        }
+        let chunk_y = match section.placement.1 {
+            VerticalPlacement::Top => 0,
+            VerticalPlacement::Center => (self.map.height / 2) - (section.height as i32 / 2),
+            VerticalPlacement::Bottom => (self.map.height - 1) - section.height as i32,
+        };
 
         // Build the map
         self.apply_previous_iteration(|x, y, _| {
@@ -336,7 +327,7 @@ impl PrefabBuilder {
         }
 
         // Note that his is a place-holder and will be  moved out of this function
-        let master_vault_list = vec![TOTALLY_NOT_A_TRAP, CHECKERBOARD, SILLY_SMILE];
+        let master_vault_list = [TOTALLY_NOT_A_TRAP, CHECKERBOARD, SILLY_SMILE];
 
         // Filter the vault list down to ones that are applicable to the current depth
         let mut possible_vaults: Vec<&PrefabRoom> = master_vault_list

@@ -85,7 +85,7 @@ impl VoronoiCellBuilder {
 
     #[allow(clippy::map_entry)]
     fn build(&mut self) {
-        let mut rng = &mut RandomNumberGenerator::new();
+        let rng = &mut RandomNumberGenerator::new();
 
         let mut voronoi_seeds: Vec<(usize, rltk::Point)> = Vec::new();
 
@@ -107,21 +107,16 @@ impl VoronoiCellBuilder {
             let y = i as i32 / self.map.width;
 
             for (seed, pos) in voronoi_seeds.iter().enumerate() {
-                let distance;
-                match self.distance_algorithm {
-                    DistanceAlgorithm::Pythagoras => {
-                        distance = rltk::DistanceAlg::PythagorasSquared
-                            .distance2d(rltk::Point::new(x, y), pos.1);
-                    }
+                let distance = match self.distance_algorithm {
+                    DistanceAlgorithm::Pythagoras => rltk::DistanceAlg::PythagorasSquared
+                        .distance2d(rltk::Point::new(x, y), pos.1),
                     DistanceAlgorithm::Manhattan => {
-                        distance =
-                            rltk::DistanceAlg::Manhattan.distance2d(rltk::Point::new(x, y), pos.1);
+                        rltk::DistanceAlg::Manhattan.distance2d(rltk::Point::new(x, y), pos.1)
                     }
                     DistanceAlgorithm::Chebyshev => {
-                        distance =
-                            rltk::DistanceAlg::Chebyshev.distance2d(rltk::Point::new(x, y), pos.1);
+                        rltk::DistanceAlg::Chebyshev.distance2d(rltk::Point::new(x, y), pos.1)
                     }
-                }
+                };
                 voronoi_distance[seed] = (seed, distance);
             }
 
@@ -180,17 +175,11 @@ impl VoronoiCellBuilder {
         self.take_snapshot();
 
         // Now we build a noise map for use in spawning entities later
-        self.noise_areas = generate_voronoi_spawn_regions(&self.map, &mut rng);
+        self.noise_areas = generate_voronoi_spawn_regions(&self.map, rng);
 
         // Spawn the entities
         for area in self.noise_areas.iter() {
-            spawner::spawn_region(
-                &self.map,
-                &mut rng,
-                area.1,
-                self.depth,
-                &mut self.spawn_list,
-            );
+            spawner::spawn_region(&self.map, rng, area.1, self.depth, &mut self.spawn_list);
         }
     }
 }

@@ -128,7 +128,7 @@ pub fn draw_map(map: &Map, ctx: &mut Rltk) {
                     fg = RGB::from_f32(0.0, 0.5, 0.5);
                 }
                 TileType::Wall => {
-                    glyph = wall_glyph(&*map, x, y);
+                    glyph = wall_glyph(map, x, y);
                     fg = RGB::from_f32(0., 5., 8.);
                 }
                 TileType::DownStairs => {

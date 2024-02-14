@@ -1,7 +1,8 @@
 use rltk::RGB;
 use serde::{Deserialize, Serialize};
+#[allow(deprecated)]
+use specs::error::NoError;
 use specs::{
-    error::NoError,
     prelude::*,
     saveload::{ConvertSaveload, Marker},
 };
