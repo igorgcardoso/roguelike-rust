@@ -91,6 +91,7 @@ pub fn count_floor_tile(map: &Map) -> usize {
     map.tiles.iter().filter(|a| **a == TileType::Floor).count()
 }
 
+#[allow(dead_code)]
 #[derive(PartialEq, Copy, Clone)]
 pub enum Symmetry {
     None,

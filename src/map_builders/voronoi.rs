@@ -5,8 +5,8 @@ use super::{
     MapBuilder, Position, TileType, SHOW_MAPGEN_VISUALIZER,
 };
 use rltk::RandomNumberGenerator;
-use specs::prelude::*;
 
+#[allow(dead_code)]
 #[derive(PartialEq, Copy, Clone)]
 pub enum DistanceAlgorithm {
     Pythagoras,

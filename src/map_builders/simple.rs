@@ -4,7 +4,6 @@ use super::{
     apply_horizontal_tunnel, apply_room_to_map, apply_vertical_tunnel, spawner, Map, MapBuilder,
     Position, Rect, TileType,
 };
-use specs::prelude::*;
 
 pub struct SimpleMapBuilder {
     map: Map,

@@ -1,5 +1,3 @@
-use specs::World;
-
 use super::{
     apply_room_to_map, spawner, Map, MapBuilder, Position, Rect, TileType, SHOW_MAPGEN_VISUALIZER,
 };

@@ -5,7 +5,6 @@ use super::{
     MapBuilder, Position, TileType, SHOW_MAPGEN_VISUALIZER,
 };
 use rltk::RandomNumberGenerator;
-use specs::prelude::*;
 
 pub struct CellularAutomataBuilder {
     map: Map,

@@ -13,13 +13,6 @@ use common::MapChunk;
 use constraints::render_pattern_to_map;
 use rltk::RandomNumberGenerator;
 use solver::Solver;
-use specs::prelude::*;
-
-#[derive(PartialEq, Copy, Clone)]
-pub enum WaveformMode {
-    TestMap,
-    Derived,
-}
 
 pub struct WaveformCollapseBuilder {
     map: Map,
@@ -27,7 +20,6 @@ pub struct WaveformCollapseBuilder {
     depth: i32,
     history: Vec<Map>,
     noise_areas: HashMap<i32, Vec<usize>>,
-    mode: WaveformMode,
     derive_from: Option<Box<dyn MapBuilder>>,
     spawn_list: Vec<(usize, String)>,
 }
@@ -67,7 +59,6 @@ impl MapBuilder for WaveformCollapseBuilder {
 impl WaveformCollapseBuilder {
     pub fn new(
         new_depth: i32,
-        mode: WaveformMode,
         derive_from: Option<Box<dyn MapBuilder>>,
     ) -> WaveformCollapseBuilder {
         WaveformCollapseBuilder {
@@ -76,14 +67,13 @@ impl WaveformCollapseBuilder {
             depth: new_depth,
             history: Vec::new(),
             noise_areas: HashMap::new(),
-            mode,
             derive_from,
             spawn_list: Vec::new(),
         }
     }
 
     pub fn derived_map(new_depth: i32, builder: Box<dyn MapBuilder>) -> Self {
-        Self::new(new_depth, WaveformMode::Derived, Some(builder))
+        Self::new(new_depth, Some(builder))
     }
 
     fn build(&mut self) {
@@ -94,6 +84,7 @@ impl WaveformCollapseBuilder {
         let pre_builder = &mut self.derive_from.as_mut().unwrap();
         pre_builder.build_map();
         self.map = pre_builder.get_map();
+        self.history = pre_builder.get_snapshot_history();
         for tile in self.map.tiles.iter_mut() {
             if *tile == TileType::DownStairs {
                 *tile = TileType::Floor;

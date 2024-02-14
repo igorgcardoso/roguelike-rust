@@ -6,7 +6,6 @@ use super::{
     TileType, SHOW_MAPGEN_VISUALIZER,
 };
 use rltk::RandomNumberGenerator;
-use specs::prelude::*;
 
 #[derive(PartialEq, Clone, Copy)]
 pub enum DrunkSpawnMode {

@@ -113,7 +113,7 @@ pub fn spawn_room(
 }
 
 pub fn spawn_region(
-    map: &Map,
+    _map: &Map,
     rng: &mut RandomNumberGenerator,
     area: &[usize],
     map_depth: i32,

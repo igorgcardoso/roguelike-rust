@@ -3,7 +3,6 @@ use super::{
     MapBuilder, Position, TileType, SHOW_MAPGEN_VISUALIZER,
 };
 use rltk::RandomNumberGenerator;
-use specs::prelude::*;
 use std::collections::HashMap;
 
 pub struct MazeBuilder {
