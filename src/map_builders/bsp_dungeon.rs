@@ -37,7 +37,7 @@ impl BspDungeonBuilder {
             let rect = self.get_random_rect(rng);
             let candidate = self.get_random_sub_rect(rect, rng);
 
-            if self.is_possible(candidate, &build_data, &rooms) {
+            if self.is_possible(candidate, build_data, &rooms) {
                 rooms.push(candidate);
                 self.add_subrects(rect);
             }
@@ -100,7 +100,7 @@ impl BspDungeonBuilder {
         result
     }
 
-    fn is_possible(&self, rect: Rect, build_data: &BuilderMap, rooms: &Vec<Rect>) -> bool {
+    fn is_possible(&self, rect: Rect, build_data: &BuilderMap, rooms: &[Rect]) -> bool {
         let mut expanded = rect;
         expanded.x1 -= 2;
         expanded.x2 += 2;
