@@ -27,7 +27,7 @@ use maze::MazeBuilder;
 use prefab_builder::PrefabBuilder;
 use room_based::{
     BspCorridors, DoglegCorridors, RoomBasedSpawner, RoomBasedStairs, RoomBasedStartingPosition,
-    RoomCornerRounder, RoomExploder, RoomSort, RoomSorter,
+    RoomCornerRounder, RoomDrawer, RoomExploder, RoomSort, RoomSorter,
 };
 use simple::SimpleMapBuilder;
 use specs::prelude::*;
@@ -160,6 +160,8 @@ fn random_room_builder(rng: &mut rltk::RandomNumberGenerator, builder: &mut Buil
             4 => builder.with(RoomSorter::new(RoomSort::BottomMost)),
             _ => builder.with(RoomSorter::new(RoomSort::Central)),
         }
+
+        builder.with(RoomDrawer::new());
 
         let corridor_roll = rng.roll_dice(1, 2);
         match corridor_roll {
