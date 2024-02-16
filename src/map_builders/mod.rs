@@ -26,8 +26,9 @@ use drunkward::DrunkardsWalkBuilder;
 use maze::MazeBuilder;
 use prefab_builder::PrefabBuilder;
 use room_based::{
-    BspCorridors, DoglegCorridors, RoomBasedSpawner, RoomBasedStairs, RoomBasedStartingPosition,
-    RoomCornerRounder, RoomDrawer, RoomExploder, RoomSort, RoomSorter,
+    BspCorridors, CorridorSpawner, DoglegCorridors, NearestCorridors, RoomBasedSpawner,
+    RoomBasedStairs, RoomBasedStartingPosition, RoomCornerRounder, RoomDrawer, RoomExploder,
+    RoomSort, RoomSorter, StraightLineCorridors,
 };
 use simple::SimpleMapBuilder;
 use specs::prelude::*;
@@ -40,6 +41,7 @@ pub struct BuilderMap {
     pub map: Map,
     pub starting_position: Option<Position>,
     pub rooms: Option<Vec<Rect>>,
+    pub corridors: Option<Vec<Vec<usize>>>,
     pub history: Vec<Map>,
 }
 
@@ -73,6 +75,7 @@ impl BuilderChain {
                 map: Map::new(new_depth),
                 starting_position: None,
                 rooms: None,
+                corridors: None,
                 history: Vec::new(),
             },
         }
@@ -161,10 +164,17 @@ fn random_room_builder(rng: &mut rltk::RandomNumberGenerator, builder: &mut Buil
 
         builder.with(RoomDrawer::new());
 
-        let corridor_roll = rng.roll_dice(1, 2);
+        let corridor_roll = rng.roll_dice(1, 4);
         match corridor_roll {
             1 => builder.with(DoglegCorridors::new()),
+            2 => builder.with(NearestCorridors::new()),
+            3 => builder.with(StraightLineCorridors::new()),
             _ => builder.with(BspCorridors::new()),
+        }
+
+        let corridor_spawn_roll = rng.roll_dice(1, 2);
+        if corridor_spawn_roll == 1 {
+            builder.with(CorridorSpawner::new());
         }
 
         let modifier_roll = rng.roll_dice(1, 6);

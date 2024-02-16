@@ -1,6 +1,7 @@
 {
   "cSpell.words": [
     "ascii",
+    "Bresenham",
     "Chebyshev",
     "dedupe",
     "deleteme",
@@ -20,6 +21,7 @@
     "mapindex",
     "MAPWIDTH",
     "newrunstate",
+    "Numpad",
     "pathing",
     "playerpos",
     "ppos",

@@ -107,10 +107,22 @@ pub fn player_input(gs: &mut State, ctx: &mut Rltk) -> RunState {
     match ctx.key {
         None => return RunState::AwaitingInput, // Nothing happened
         Some(key) => match key {
-            VirtualKeyCode::W | VirtualKeyCode::Up => try_move_player(0, -1, &mut gs.ecs),
-            VirtualKeyCode::A | VirtualKeyCode::Left => try_move_player(-1, 0, &mut gs.ecs),
-            VirtualKeyCode::S | VirtualKeyCode::Down => try_move_player(0, 1, &mut gs.ecs),
-            VirtualKeyCode::D | VirtualKeyCode::Right => try_move_player(1, 0, &mut gs.ecs),
+            VirtualKeyCode::W | VirtualKeyCode::Up | VirtualKeyCode::Numpad8 => {
+                try_move_player(0, -1, &mut gs.ecs)
+            }
+            VirtualKeyCode::Q | VirtualKeyCode::Numpad7 => try_move_player(-1, -1, &mut gs.ecs),
+            VirtualKeyCode::A | VirtualKeyCode::Left | VirtualKeyCode::Numpad4 => {
+                try_move_player(-1, 0, &mut gs.ecs)
+            }
+            VirtualKeyCode::E | VirtualKeyCode::Numpad9 => try_move_player(1, -1, &mut gs.ecs),
+            VirtualKeyCode::S | VirtualKeyCode::Down | VirtualKeyCode::Numpad2 => {
+                try_move_player(0, 1, &mut gs.ecs)
+            }
+            VirtualKeyCode::Z | VirtualKeyCode::Numpad1 => try_move_player(-1, 1, &mut gs.ecs),
+            VirtualKeyCode::D | VirtualKeyCode::Right | VirtualKeyCode::Numpad6 => {
+                try_move_player(1, 0, &mut gs.ecs)
+            }
+            VirtualKeyCode::C | VirtualKeyCode::Numpad3 => try_move_player(1, 1, &mut gs.ecs),
             VirtualKeyCode::G => get_item(&mut gs.ecs),
             VirtualKeyCode::B => return RunState::ShowInventory,
             VirtualKeyCode::V => return RunState::ShowDropItem,
