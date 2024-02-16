@@ -1,4 +1,7 @@
-use super::{count_floor_tile, paint, BuilderMap, InitialMapBuilder, Position, Symmetry, TileType};
+use super::{
+    count_floor_tile, paint, BuilderMap, InitialMapBuilder, MetaMapBuilder, Position, Symmetry,
+    TileType,
+};
 use rltk::RandomNumberGenerator;
 
 #[derive(PartialEq, Clone, Copy)]
@@ -20,6 +23,13 @@ pub struct DrunkardsWalkBuilder {
 }
 
 impl InitialMapBuilder for DrunkardsWalkBuilder {
+    fn build_map(&mut self, rng: &mut RandomNumberGenerator, build_data: &mut BuilderMap) {
+        self.build(rng, build_data);
+    }
+}
+
+impl MetaMapBuilder for DrunkardsWalkBuilder {
+    #[allow(dead_code)]
     fn build_map(&mut self, rng: &mut RandomNumberGenerator, build_data: &mut BuilderMap) {
         self.build(rng, build_data);
     }

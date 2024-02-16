@@ -1,4 +1,4 @@
-use super::{BuilderMap, InitialMapBuilder, TileType};
+use super::{BuilderMap, InitialMapBuilder, MetaMapBuilder, TileType};
 use rltk::RandomNumberGenerator;
 
 pub struct CellularAutomataBuilder {}
@@ -7,6 +7,13 @@ impl InitialMapBuilder for CellularAutomataBuilder {
     #[allow(dead_code)]
     fn build_map(&mut self, rng: &mut RandomNumberGenerator, build_data: &mut BuilderMap) {
         self.build(rng, build_data);
+    }
+}
+
+impl MetaMapBuilder for CellularAutomataBuilder {
+    #[allow(dead_code)]
+    fn build_map(&mut self, _rng: &mut RandomNumberGenerator, build_data: &mut BuilderMap) {
+        self.apply_iteration(build_data);
     }
 }
 
@@ -34,47 +41,51 @@ impl CellularAutomataBuilder {
 
         // Now we iteratively apply cellular automata rules
         for _ in 0..15 {
-            let mut new_tiles = build_data.map.tiles.clone();
+            self.apply_iteration(build_data);
+        }
+    }
 
-            for y in 1..build_data.map.height - 1 {
-                for x in 1..build_data.map.width - 1 {
-                    let idx = build_data.map.xy_idx(x, y);
-                    let mut neighbors = 0;
-                    if build_data.map.tiles[build_data.map.xy_idx(x - 1, y - 1)] == TileType::Wall {
-                        neighbors += 1;
-                    }
-                    if build_data.map.tiles[build_data.map.xy_idx(x, y - 1)] == TileType::Wall {
-                        neighbors += 1;
-                    }
-                    if build_data.map.tiles[build_data.map.xy_idx(x + 1, y - 1)] == TileType::Wall {
-                        neighbors += 1;
-                    }
-                    if build_data.map.tiles[build_data.map.xy_idx(x - 1, y)] == TileType::Wall {
-                        neighbors += 1;
-                    }
-                    if build_data.map.tiles[build_data.map.xy_idx(x + 1, y)] == TileType::Wall {
-                        neighbors += 1;
-                    }
-                    if build_data.map.tiles[build_data.map.xy_idx(x - 1, y + 1)] == TileType::Wall {
-                        neighbors += 1;
-                    }
-                    if build_data.map.tiles[build_data.map.xy_idx(x, y + 1)] == TileType::Wall {
-                        neighbors += 1;
-                    }
-                    if build_data.map.tiles[build_data.map.xy_idx(x + 1, y + 1)] == TileType::Wall {
-                        neighbors += 1;
-                    }
+    fn apply_iteration(&mut self, build_data: &mut BuilderMap) {
+        let mut new_tiles = build_data.map.tiles.clone();
 
-                    if neighbors > 4 || neighbors == 0 {
-                        new_tiles[idx] = TileType::Wall;
-                    } else {
-                        new_tiles[idx] = TileType::Floor;
-                    }
+        for y in 1..build_data.map.height - 1 {
+            for x in 1..build_data.map.width - 1 {
+                let idx = build_data.map.xy_idx(x, y);
+                let mut neighbors = 0;
+                if build_data.map.tiles[build_data.map.xy_idx(x - 1, y - 1)] == TileType::Wall {
+                    neighbors += 1;
+                }
+                if build_data.map.tiles[build_data.map.xy_idx(x, y - 1)] == TileType::Wall {
+                    neighbors += 1;
+                }
+                if build_data.map.tiles[build_data.map.xy_idx(x + 1, y - 1)] == TileType::Wall {
+                    neighbors += 1;
+                }
+                if build_data.map.tiles[build_data.map.xy_idx(x - 1, y)] == TileType::Wall {
+                    neighbors += 1;
+                }
+                if build_data.map.tiles[build_data.map.xy_idx(x + 1, y)] == TileType::Wall {
+                    neighbors += 1;
+                }
+                if build_data.map.tiles[build_data.map.xy_idx(x - 1, y + 1)] == TileType::Wall {
+                    neighbors += 1;
+                }
+                if build_data.map.tiles[build_data.map.xy_idx(x, y + 1)] == TileType::Wall {
+                    neighbors += 1;
+                }
+                if build_data.map.tiles[build_data.map.xy_idx(x + 1, y + 1)] == TileType::Wall {
+                    neighbors += 1;
+                }
+
+                if neighbors > 4 || neighbors == 0 {
+                    new_tiles[idx] = TileType::Wall;
+                } else {
+                    new_tiles[idx] = TileType::Floor;
                 }
             }
-
-            build_data.map.tiles = new_tiles.clone();
-            build_data.take_snapshot();
         }
+
+        build_data.map.tiles = new_tiles.clone();
+        build_data.take_snapshot();
     }
 }

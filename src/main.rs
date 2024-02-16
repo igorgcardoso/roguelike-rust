@@ -21,8 +21,6 @@ use rltk::{GameState, Point, Rltk, RGB};
 use specs::prelude::*;
 use specs::saveload::{SimpleMarker, SimpleMarkerAllocator};
 
-const SHOW_MAPGEN_VISUALIZER: bool = true;
-
 #[derive(PartialEq, Copy, Clone)]
 pub enum RunState {
     AwaitingInput,
@@ -238,18 +236,22 @@ impl GameState for State {
                 }
             }
             RunState::MapGeneration => {
-                if !SHOW_MAPGEN_VISUALIZER {
+                #[cfg(not(debug_assertions))]
+                {
                     newrunstate = self.mapgen_next_state.unwrap();
                 }
                 ctx.cls();
-                draw_map(&self.mapgen_history[self.mapgen_index], ctx);
+                #[cfg(debug_assertions)]
+                {
+                    draw_map(&self.mapgen_history[self.mapgen_index], ctx);
 
-                self.mapgen_timer += ctx.frame_time_ms;
-                if self.mapgen_timer > 300.0 {
-                    self.mapgen_timer = 0.0;
-                    self.mapgen_index += 1;
-                    if self.mapgen_index >= self.mapgen_history.len() {
-                        newrunstate = self.mapgen_next_state.unwrap();
+                    self.mapgen_timer += ctx.frame_time_ms;
+                    if self.mapgen_timer > 300.0 {
+                        self.mapgen_timer = 0.0;
+                        self.mapgen_index += 1;
+                        if self.mapgen_index >= self.mapgen_history.len() {
+                            newrunstate = self.mapgen_next_state.unwrap();
+                        }
                     }
                 }
             }

@@ -1,4 +1,7 @@
-use super::{count_floor_tile, paint, BuilderMap, InitialMapBuilder, Position, Symmetry, TileType};
+use super::{
+    count_floor_tile, paint, BuilderMap, InitialMapBuilder, MetaMapBuilder, Position, Symmetry,
+    TileType,
+};
 use rltk::RandomNumberGenerator;
 
 #[allow(dead_code)]
@@ -17,6 +20,13 @@ pub struct DLABuilder {
 }
 
 impl InitialMapBuilder for DLABuilder {
+    fn build_map(&mut self, rng: &mut RandomNumberGenerator, build_data: &mut BuilderMap) {
+        self.build(rng, build_data);
+    }
+}
+
+impl MetaMapBuilder for DLABuilder {
+    #[allow(dead_code)]
     fn build_map(&mut self, rng: &mut RandomNumberGenerator, build_data: &mut BuilderMap) {
         self.build(rng, build_data);
     }
@@ -62,6 +72,13 @@ impl DLABuilder {
         dla.algorithm = DLAAlgorithm::CentralAttractor;
         dla.brush_size = 2;
         dla.symmetry = Symmetry::Horizontal;
+        dla
+    }
+
+    #[allow(dead_code)]
+    pub fn heavy_erosion() -> Box<DLABuilder> {
+        let mut dla = DLABuilder::walk_inwards();
+        dla.floor_percent = 0.35;
         dla
     }
 
