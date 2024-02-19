@@ -1,5 +1,5 @@
 use super::{
-    gamelog::GameLog, rex_assets::RexAssets, CombatStats, Equipped, Hidden, HungerClock,
+    camera, gamelog::GameLog, rex_assets::RexAssets, CombatStats, Equipped, Hidden, HungerClock,
     HungerState, InBackpack, Map, Name, Player, Point, Position, RunState, State, Viewshed,
 };
 use rltk::{Rltk, VirtualKeyCode, RGB};
@@ -98,19 +98,30 @@ pub fn draw_ui(ecs: &World, ctx: &mut Rltk) {
 }
 
 fn draw_tooltips(ecs: &World, ctx: &mut Rltk) {
+    let (min_x, _max_x, min_y, _max_y) = camera::get_screen_bounds(ecs, ctx);
     let map = ecs.fetch::<Map>();
     let names = ecs.read_storage::<Name>();
     let positions = ecs.read_storage::<Position>();
     let hidden = ecs.read_storage::<Hidden>();
 
     let mouse_pos = ctx.mouse_pos();
-    if mouse_pos.0 >= map.width || mouse_pos.1 >= map.height {
+    let mut mouse_map_pos = mouse_pos;
+    mouse_map_pos.0 += min_x;
+    mouse_map_pos.1 += min_y;
+    if mouse_map_pos.0 >= map.width - 1
+        || mouse_map_pos.1 >= map.height - 1
+        || mouse_map_pos.0 < 1
+        || mouse_map_pos.1 < 1
+    {
+        return;
+    }
+
+    if !map.visible_tiles[map.xy_idx(mouse_map_pos.0, mouse_map_pos.1)] {
         return;
     }
     let mut tooltip: Vec<String> = Vec::new();
     for (name, position, _hidden) in (&names, &positions, !&hidden).join() {
-        let idx = map.xy_idx(position.x, position.y);
-        if position.x == mouse_pos.0 && position.y == mouse_pos.1 && map.visible_tiles[idx] {
+        if position.x == mouse_map_pos.0 && position.y == mouse_map_pos.1 {
             tooltip.push(name.name.to_string());
         }
     }
@@ -374,6 +385,7 @@ pub fn ranged_target(
     ctx: &mut Rltk,
     range: i32,
 ) -> (ItemMenuResult, Option<Point>) {
+    let (min_x, max_x, min_y, max_y) = camera::get_screen_bounds(&gs.ecs, ctx);
     let player_entity = gs.ecs.fetch::<Entity>();
     let player_pos = gs.ecs.fetch::<Point>();
     let viewsheds = gs.ecs.read_storage::<Viewshed>();
@@ -393,8 +405,16 @@ pub fn ranged_target(
         for idx in visible.visible_tiles.iter() {
             let distance = rltk::DistanceAlg::Pythagoras.distance2d(*player_pos, *idx);
             if distance <= range as f32 {
-                ctx.set_bg(idx.x, idx.y, RGB::named(rltk::BLUE));
-                available_cells.push(idx);
+                let screen_x = idx.x - min_x;
+                let screen_y = idx.y - min_y;
+                if screen_x > 1
+                    && screen_x < (max_x - min_x) - 1
+                    && screen_y > 1
+                    && screen_y < (max_y - min_y) - 1
+                {
+                    ctx.set_bg(idx.x, idx.y, RGB::named(rltk::BLUE));
+                    available_cells.push(idx);
+                }
             }
         }
     } else {
@@ -403,9 +423,12 @@ pub fn ranged_target(
 
     // Draw mouse cursor
     let mouse_pos = ctx.mouse_pos();
+    let mut mouse_map_pos = mouse_pos;
+    mouse_map_pos.0 += min_x;
+    mouse_map_pos.1 += min_y;
     let mut valid_target = false;
     for idx in available_cells.iter() {
-        if idx.x == mouse_pos.0 && idx.y == mouse_pos.1 {
+        if idx.x == mouse_map_pos.0 && idx.y == mouse_map_pos.1 {
             valid_target = true;
         }
     }
@@ -414,11 +437,14 @@ pub fn ranged_target(
         if ctx.left_click {
             return (
                 ItemMenuResult::Selected,
-                Some(Point::new(mouse_pos.0, mouse_pos.1)),
+                Some(Point::new(mouse_map_pos.0, mouse_map_pos.1)),
             );
         }
-    } else if ctx.left_click {
-        return (ItemMenuResult::Cancel, None);
+    } else {
+        ctx.set_bg(mouse_pos.0, mouse_pos.1, RGB::named(rltk::RED));
+        if ctx.left_click {
+            return (ItemMenuResult::Cancel, None);
+        }
     }
 
     (ItemMenuResult::NoResponse, None)

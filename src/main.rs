@@ -1,4 +1,5 @@
 extern crate serde;
+pub mod camera;
 mod components;
 mod gamelog;
 mod gui;
@@ -17,7 +18,7 @@ pub use player::*;
 pub use rect::Rect;
 pub use systems::*;
 
-use rltk::{GameState, Point, Rltk, RGB};
+use rltk::{GameState, Point, Rltk};
 use specs::prelude::*;
 use specs::saveload::{SimpleMarker, SimpleMarkerAllocator};
 
@@ -63,16 +64,41 @@ impl GameState for State {
         }
 
         ctx.cls();
-        particle_system::cull_dead_particle(&mut self.ecs, ctx);
+        particle_system::cull_dead_particles(&mut self.ecs, ctx);
 
         match newrunstate {
             RunState::MainMenu { .. } => {}
-            _ => draw_map(&self.ecs.fetch::<Map>(), ctx),
+            RunState::GameOver { .. } => {}
+            _ => {
+                camera::render_camera(&self.ecs, ctx);
+                gui::draw_ui(&self.ecs, ctx);
+            }
         }
 
-        draw_map(&self.ecs.fetch::<Map>(), ctx);
-
         match newrunstate {
+            RunState::MapGeneration => {
+                #[cfg(not(debug_assertions))]
+                {
+                    newrunstate = self.mapgen_next_state.unwrap();
+                }
+                #[cfg(debug_assertions)]
+                {
+                    ctx.cls();
+                    if self.mapgen_index < self.mapgen_history.len() {
+                        camera::render_debug_map(&self.mapgen_history[self.mapgen_index], ctx);
+                    }
+
+                    self.mapgen_timer += ctx.frame_time_ms;
+                    if self.mapgen_timer > 200.0 {
+                        self.mapgen_timer = 0.0;
+                        self.mapgen_index += 1;
+                        if self.mapgen_index >= self.mapgen_history.len() {
+                            //self.mapgen_index -= 1;
+                            newrunstate = self.mapgen_next_state.unwrap();
+                        }
+                    }
+                }
+            }
             RunState::PreRun => {
                 self.run_systems();
                 self.ecs.maintain();
@@ -144,6 +170,24 @@ impl GameState for State {
                     }
                 }
             }
+            RunState::ShowRemoveItem => {
+                let result = gui::remove_item_menu(self, ctx);
+                match result.0 {
+                    gui::ItemMenuResult::Cancel => newrunstate = RunState::AwaitingInput,
+                    gui::ItemMenuResult::NoResponse => {}
+                    gui::ItemMenuResult::Selected => {
+                        let item_entity = result.1.unwrap();
+                        let mut intent = self.ecs.write_storage::<WantsToRemoveItem>();
+                        intent
+                            .insert(
+                                *self.ecs.fetch::<Entity>(),
+                                WantsToRemoveItem { item: item_entity },
+                            )
+                            .expect("Unable to insert intent");
+                        newrunstate = RunState::PlayerTurn;
+                    }
+                }
+            }
             RunState::ShowTargeting { range, item } => {
                 let result = gui::ranged_target(self, ctx, range);
                 match result.0 {
@@ -179,36 +223,10 @@ impl GameState for State {
                             newrunstate = RunState::AwaitingInput;
                             saveload_system::delete_save();
                         }
-                        gui::MainMenuSelection::Quit => ::std::process::exit(0),
+                        gui::MainMenuSelection::Quit => {
+                            ::std::process::exit(0);
+                        }
                     },
-                }
-            }
-            RunState::SaveGame => {
-                saveload_system::save_game(&mut self.ecs);
-                newrunstate = RunState::MainMenu {
-                    menu_selection: gui::MainMenuSelection::LoadGame,
-                }
-            }
-            RunState::NextLevel => {
-                self.goto_next_level();
-                newrunstate = RunState::PreRun;
-            }
-            RunState::ShowRemoveItem => {
-                let result = gui::remove_item_menu(self, ctx);
-                match result.0 {
-                    gui::ItemMenuResult::Cancel => newrunstate = RunState::AwaitingInput,
-                    gui::ItemMenuResult::NoResponse => {}
-                    gui::ItemMenuResult::Selected => {
-                        let item_entity = result.1.unwrap();
-                        let mut intent = self.ecs.write_storage::<WantsToRemoveItem>();
-                        intent
-                            .insert(
-                                *self.ecs.fetch::<Entity>(),
-                                WantsToRemoveItem { item: item_entity },
-                            )
-                            .expect("Unable to insert intent");
-                        newrunstate = RunState::PlayerTurn;
-                    }
                 }
             }
             RunState::GameOver => {
@@ -217,68 +235,43 @@ impl GameState for State {
                     gui::GameOverResult::NoSelection => {}
                     gui::GameOverResult::QuitToMenu => {
                         self.game_over_cleanup();
-                        newrunstate = RunState::MainMenu {
+                        newrunstate = RunState::MapGeneration;
+                        self.mapgen_next_state = Some(RunState::MainMenu {
                             menu_selection: gui::MainMenuSelection::NewGame,
-                        };
+                        });
                     }
                 }
             }
+            RunState::SaveGame => {
+                saveload_system::save_game(&mut self.ecs);
+                newrunstate = RunState::MainMenu {
+                    menu_selection: gui::MainMenuSelection::LoadGame,
+                };
+            }
+            RunState::NextLevel => {
+                self.goto_next_level();
+                self.mapgen_next_state = Some(RunState::PreRun);
+                newrunstate = RunState::MapGeneration;
+            }
             RunState::MagicMapReveal { row } => {
                 let mut map = self.ecs.fetch_mut::<Map>();
-                for x in 0..MAPWIDTH {
-                    let idx = map.xy_idx(x as i32, row);
+                for x in 0..map.width {
+                    let idx = map.xy_idx(x, row);
                     map.revealed_tiles[idx] = true;
                 }
-                if row as usize == MAPHEIGHT - 1 {
+                if row == map.height - 1 {
                     newrunstate = RunState::MonsterTurn;
                 } else {
                     newrunstate = RunState::MagicMapReveal { row: row + 1 };
                 }
             }
-            RunState::MapGeneration => {
-                #[cfg(not(debug_assertions))]
-                {
-                    newrunstate = self.mapgen_next_state.unwrap();
-                }
-                ctx.cls();
-                #[cfg(debug_assertions)]
-                {
-                    draw_map(&self.mapgen_history[self.mapgen_index], ctx);
-
-                    self.mapgen_timer += ctx.frame_time_ms;
-                    if self.mapgen_timer > 300.0 {
-                        self.mapgen_timer = 0.0;
-                        self.mapgen_index += 1;
-                        if self.mapgen_index >= self.mapgen_history.len() {
-                            newrunstate = self.mapgen_next_state.unwrap();
-                        }
-                    }
-                }
-            }
         }
+
         {
             let mut runwriter = self.ecs.write_resource::<RunState>();
             *runwriter = newrunstate;
         }
         damage_system::delete_the_dead(&mut self.ecs);
-
-        let positions = self.ecs.read_storage::<Position>();
-        let renderables = self.ecs.read_storage::<Renderable>();
-        let hidden = self.ecs.read_storage::<Hidden>();
-        let map = self.ecs.fetch::<Map>();
-
-        let mut data = (&positions, &renderables, !&hidden)
-            .join()
-            .collect::<Vec<_>>();
-        data.sort_by(|&a, &b| b.1.render_order.cmp(&a.1.render_order));
-        for (pos, render, _hidden) in data.iter() {
-            let idx = map.xy_idx(pos.x, pos.y);
-            if map.visible_tiles[idx] {
-                ctx.set(pos.x, pos.y, render.fg, render.bg, render.glyph);
-            }
-        }
-
-        gui::draw_ui(&self.ecs, ctx);
     }
 }
 
@@ -421,7 +414,7 @@ impl State {
         self.mapgen_history.clear();
 
         let mut rng = self.ecs.write_resource::<rltk::RandomNumberGenerator>();
-        let mut builder = map_builders::random_builder(new_depth, &mut rng);
+        let mut builder = map_builders::random_builder(new_depth, &mut rng, 80, 50);
 
         builder.build_map(&mut rng);
         drop(rng);
@@ -520,7 +513,7 @@ fn main() -> rltk::BError {
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
     gs.ecs.insert(rltk::RandomNumberGenerator::new());
 
-    gs.ecs.insert(Map::new(1));
+    gs.ecs.insert(Map::new(1, 64, 64));
     gs.ecs.insert(Point::new(0, 0));
 
     let player_entity = spawner::player(&mut gs.ecs, 0, 0);

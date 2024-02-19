@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
 use super::{
-    random_table::RandomTable, AreaOfEffect, BlocksTile, CombatStats, Confusion, Consumable,
-    DefenseBonus, EntryTrigger, EquipmentSlot, Equippable, Hidden, HungerClock, HungerState,
-    InflictsDamage, Item, MagicMapper, MeleePowerBonus, Monster, Name, Player, Position,
-    ProvidesFood, ProvidesHealing, Ranged, Rect, Renderable, SerializeMe, SingleActivation,
-    Viewshed, MAPWIDTH, Map, TileType, BlocksVisibility, Door,
+    random_table::RandomTable, AreaOfEffect, BlocksTile, BlocksVisibility, CombatStats, Confusion,
+    Consumable, DefenseBonus, Door, EntryTrigger, EquipmentSlot, Equippable, Hidden, HungerClock,
+    HungerState, InflictsDamage, Item, MagicMapper, Map, MeleePowerBonus, Monster, Name, Player,
+    Position, ProvidesFood, ProvidesHealing, Ranged, Rect, Renderable, SerializeMe,
+    SingleActivation, TileType, Viewshed,
 };
 use rltk::{RandomNumberGenerator, RGB};
 use specs::prelude::*;
@@ -388,8 +388,13 @@ fn bear_trap(ecs: &mut World, x: i32, y: i32) {
 }
 
 pub fn spawn_entity(ecs: &mut World, spawn: &(&usize, &String)) {
-    let x = (*spawn.0 % MAPWIDTH) as i32;
-    let y = (*spawn.0 / MAPWIDTH) as i32;
+    let map = ecs.fetch::<Map>();
+
+    let width = map.width as usize;
+
+    let x = (*spawn.0 % width) as i32;
+    let y = (*spawn.0 / width) as i32;
+    drop(map);
 
     match spawn.1.as_ref() {
         "Goblin" => goblin(ecs, x, y),

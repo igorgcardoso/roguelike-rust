@@ -1,7 +1,7 @@
 use super::{ParticleLifetime, Position, Renderable, Rltk};
 use specs::prelude::*;
 
-pub fn cull_dead_particle(ecs: &mut World, ctx: &Rltk) {
+pub fn cull_dead_particles(ecs: &mut World, ctx: &Rltk) {
     let mut dead_particles: Vec<Entity> = Vec::new();
     {
         // Age out particles
