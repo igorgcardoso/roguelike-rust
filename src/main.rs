@@ -7,6 +7,7 @@ mod map;
 pub mod map_builders;
 mod player;
 pub mod random_table;
+mod raws;
 mod rect;
 mod rex_assets;
 mod spawner;
@@ -21,6 +22,8 @@ pub use systems::*;
 use rltk::{GameState, Point, Rltk};
 use specs::prelude::*;
 use specs::saveload::{SimpleMarker, SimpleMarkerAllocator};
+#[macro_use]
+extern crate lazy_static;
 
 #[derive(PartialEq, Copy, Clone)]
 pub enum RunState {
@@ -525,6 +528,8 @@ fn main() -> rltk::BError {
     gs.ecs.insert(gamelog::GameLog {
         entries: vec!["Welcome to Rusty Roguelike".to_string()],
     });
+
+    raws::load_raws();
 
     gs.generate_world_map(1);
 
