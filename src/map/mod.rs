@@ -1,15 +1,10 @@
+mod tile_type;
+
+use super::*;
 use rltk::{Algorithm2D, BaseMap, Point};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
-
-use super::*;
-
-#[derive(PartialEq, Eq, Hash, Copy, Clone, Serialize, Deserialize)]
-pub enum TileType {
-    Wall,
-    Floor,
-    DownStairs,
-}
+pub use tile_type::{get_tile_cost, is_tile_opaque, is_tile_walkable, TileType};
 
 #[derive(Default, Serialize, Deserialize, Clone)]
 pub struct Map {
@@ -58,7 +53,7 @@ impl Map {
 
     pub fn populate_blocked(&mut self) {
         for (idx, tile) in self.tiles.iter_mut().enumerate() {
-            self.blocked[idx] = *tile == TileType::Wall;
+            self.blocked[idx] = !is_tile_walkable(*tile);
         }
     }
 
@@ -77,28 +72,48 @@ impl Algorithm2D for Map {
 
 impl BaseMap for Map {
     fn is_opaque(&self, idx: usize) -> bool {
-        self.tiles[idx] == TileType::Wall || self.view_blocked.contains(&idx)
+        let idx_u = idx as usize;
+        if idx_u > 0 && idx_u < self.tiles.len() {
+            is_tile_opaque(self.tiles[idx_u]) || self.view_blocked.contains(&idx_u)
+        } else {
+            true
+        }
     }
 
     fn get_available_exits(&self, idx: usize) -> rltk::SmallVec<[(usize, f32); 10]> {
         let mut exits = rltk::SmallVec::new();
         let x = idx as i32 % self.width;
         let y = idx as i32 / self.width;
-        let w = self.width as usize;
+        let width_u = self.width as usize;
+        let tile_type = self.tiles[idx as usize];
 
         // cardinal directions
         if self.is_exit_valid(x - 1, y) {
-            exits.push((idx - 1, 1.0))
+            exits.push((idx - 1, get_tile_cost(tile_type)))
         };
         if self.is_exit_valid(x + 1, y) {
-            exits.push((idx + 1, 1.0))
+            exits.push((idx + 1, get_tile_cost(tile_type)))
         };
         if self.is_exit_valid(x, y - 1) {
-            exits.push((idx - w, 1.0))
+            exits.push((idx - width_u, get_tile_cost(tile_type)))
         };
         if self.is_exit_valid(x, y + 1) {
-            exits.push((idx + w, 1.0))
+            exits.push((idx + width_u, get_tile_cost(tile_type)))
         };
+
+        // Diagonals
+        if self.is_exit_valid(x - 1, y - 1) {
+            exits.push(((idx - width_u) - 1, get_tile_cost(tile_type) * 1.45));
+        }
+        if self.is_exit_valid(x + 1, y - 1) {
+            exits.push(((idx - width_u) + 1, get_tile_cost(tile_type) * 1.45));
+        }
+        if self.is_exit_valid(x - 1, y + 1) {
+            exits.push(((idx + width_u) - 1, get_tile_cost(tile_type) * 1.45));
+        }
+        if self.is_exit_valid(x + 1, y + 1) {
+            exits.push(((idx + width_u) + 1, get_tile_cost(tile_type) * 1.45));
+        }
 
         exits
     }
