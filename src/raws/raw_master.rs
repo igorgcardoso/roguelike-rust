@@ -212,7 +212,11 @@ pub fn spawn_named_mob(
             name: mob_template.name.clone(),
         });
 
-        entity_builder = entity_builder.with(Monster {});
+        match mob_template.ai.as_ref() {
+            "melee" => entity_builder = entity_builder.with(Monster {}),
+            "bystander" => entity_builder = entity_builder.with(Bystander {}),
+            _ => {}
+        }
 
         if mob_template.blocks_tile {
             entity_builder = entity_builder.with(BlocksTile {});

@@ -25,7 +25,7 @@ pub fn render_camera(ecs: &World, ctx: &mut Rltk) {
                     y,
                     RGB::named(rltk::GRAY),
                     RGB::named(rltk::BLACK),
-                    rltk::to_cp437(' '),
+                    rltk::to_cp437('.'),
                 );
             }
         }

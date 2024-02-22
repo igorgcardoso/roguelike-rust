@@ -72,9 +72,8 @@ impl Algorithm2D for Map {
 
 impl BaseMap for Map {
     fn is_opaque(&self, idx: usize) -> bool {
-        let idx_u = idx as usize;
-        if idx_u > 0 && idx_u < self.tiles.len() {
-            is_tile_opaque(self.tiles[idx_u]) || self.view_blocked.contains(&idx_u)
+        if idx > 0 && idx < self.tiles.len() {
+            is_tile_opaque(self.tiles[idx]) || self.view_blocked.contains(&idx)
         } else {
             true
         }
@@ -85,7 +84,7 @@ impl BaseMap for Map {
         let x = idx as i32 % self.width;
         let y = idx as i32 / self.width;
         let width_u = self.width as usize;
-        let tile_type = self.tiles[idx as usize];
+        let tile_type = self.tiles[idx];
 
         // cardinal directions
         if self.is_exit_valid(x - 1, y) {
