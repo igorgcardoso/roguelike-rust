@@ -34,7 +34,7 @@
     { "name": "Shield", "weight": 3, "min_depth": 0, "max_depth": 100 },
     { "name": "Longsword", "weight": 1, "min_depth": 1, "max_depth": 100 },
     { "name": "Tower Shield", "weight": 1, "min_depth": 1, "max_depth": 100 },
-    { "name": "Battleaxe", "weight": 1, "min_depth": 2, "max_depth": 100 },
+    { "name": "Battle Axe", "weight": 1, "min_depth": 2, "max_depth": 100 },
     { "name": "Rations", "weight": 10, "min_depth": 0, "max_depth": 100 },
     {
       "name": "Magic Mapping Scroll",
@@ -164,7 +164,7 @@
       }
     },
     {
-      "name": "BattleAxe",
+      "name": "Battle Axe",
       "renderable": {
         "glyph": "¶",
         "fg": "#FF55FF",
