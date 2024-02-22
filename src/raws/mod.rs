@@ -2,12 +2,14 @@ mod item_structs;
 mod mob_structs;
 mod prop_structs;
 mod raw_master;
+mod spawn_table_structs;
 
 use item_structs::*;
 use mob_structs::*;
 use prop_structs::*;
 pub use raw_master::*;
 use serde::Deserialize;
+use spawn_table_structs::*;
 use std::sync::Mutex;
 
 lazy_static! {
@@ -21,6 +23,7 @@ pub struct Raws {
     pub items: Vec<Item>,
     pub mobs: Vec<Mob>,
     pub props: Vec<Prop>,
+    pub spawn_table: Vec<SpawnTableEntry>,
 }
 
 pub fn load_raws() {
