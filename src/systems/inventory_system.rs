@@ -1,6 +1,6 @@
 use super::{
-    gamelog::GameLog, AreaOfEffect, CombatStats, Confusion, Consumable, Equippable, Equipped,
-    HungerClock, HungerState, InBackpack, InflictsDamage, MagicMapper, Map, Name, ParticleBuilder,
+    gamelog::GameLog, AreaOfEffect, Confusion, Consumable, Equippable, Equipped, HungerClock,
+    HungerState, InBackpack, InflictsDamage, MagicMapper, Map, Name, ParticleBuilder, Pools,
     Position, ProvidesFood, ProvidesHealing, RunState, SufferDamage, WantsToDropItem,
     WantsToPickupItem, WantsToRemoveItem, WantsToUseItem,
 };
@@ -60,7 +60,7 @@ impl<'a> System<'a> for ItemUseSystem {
         ReadStorage<'a, Consumable>,
         ReadStorage<'a, ProvidesHealing>,
         ReadStorage<'a, InflictsDamage>,
-        WriteStorage<'a, CombatStats>,
+        WriteStorage<'a, Pools>,
         WriteStorage<'a, SufferDamage>,
         ReadStorage<'a, AreaOfEffect>,
         WriteStorage<'a, Confusion>,
@@ -228,7 +228,10 @@ impl<'a> System<'a> for ItemUseSystem {
                     for target in targets.iter() {
                         let stats = combat_stats.get_mut(*target);
                         if let Some(stats) = stats {
-                            stats.hp = i32::min(stats.max_hp, stats.hp + healer.heal_amount);
+                            stats.hit_points.current = stats
+                                .hit_points
+                                .max
+                                .min(stats.hit_points.current + healer.heal_amount);
                             if entity == *player_entity {
                                 log.entries.push(format!(
                                     "You use the {}, healing {} hp.",

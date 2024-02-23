@@ -1,6 +1,5 @@
 use super::Raws;
-use crate::components::*;
-use crate::random_table::RandomTable;
+use crate::{attribute_bonus, components::*, mana_at_level, npc_hp, random_table::RandomTable};
 use specs::prelude::*;
 use std::collections::{HashMap, HashSet};
 
@@ -228,12 +227,114 @@ pub fn spawn_named_mob(
         if mob_template.blocks_tile {
             entity_builder = entity_builder.with(BlocksTile {});
         }
-        entity_builder = entity_builder.with(CombatStats {
-            max_hp: mob_template.stats.max_hp,
-            hp: mob_template.stats.hp,
-            defense: mob_template.stats.defense,
-            power: mob_template.stats.power,
-        });
+
+        let mut mob_fitness = 11;
+        let mut mob_intelligence = 11;
+
+        let mut attributes = Attributes {
+            might: Attribute {
+                base: 11,
+                modifiers: 0,
+                bonus: attribute_bonus(11),
+            },
+            fitness: Attribute {
+                base: mob_fitness,
+                modifiers: 0,
+                bonus: attribute_bonus(mob_fitness),
+            },
+            quickness: Attribute {
+                base: 11,
+                modifiers: 0,
+                bonus: attribute_bonus(11),
+            },
+            intelligence: Attribute {
+                base: mob_intelligence,
+                modifiers: 0,
+                bonus: attribute_bonus(mob_intelligence),
+            },
+        };
+
+        if let Some(might) = mob_template.attributes.might {
+            attributes.might = Attribute {
+                base: might,
+                modifiers: 0,
+                bonus: attribute_bonus(might),
+            };
+        }
+        if let Some(fitness) = mob_template.attributes.fitness {
+            attributes.fitness = Attribute {
+                base: fitness,
+                modifiers: 0,
+                bonus: attribute_bonus(fitness),
+            };
+            mob_fitness = fitness;
+        }
+        if let Some(quickness) = mob_template.attributes.quickness {
+            attributes.quickness = Attribute {
+                base: quickness,
+                modifiers: 0,
+                bonus: attribute_bonus(quickness),
+            };
+        }
+        if let Some(intelligence) = mob_template.attributes.intelligence {
+            attributes.intelligence = Attribute {
+                base: intelligence,
+                modifiers: 0,
+                bonus: attribute_bonus(intelligence),
+            };
+            mob_intelligence = intelligence;
+        }
+        entity_builder = entity_builder.with(attributes);
+
+        let mut skills = Skills {
+            skills: HashMap::new(),
+        };
+        skills.skills.insert(Skill::Melee, 1);
+        skills.skills.insert(Skill::Defense, 1);
+        skills.skills.insert(Skill::Magic, 1);
+
+        if let Some(mob_skill) = &mob_template.skills {
+            for skill in mob_skill.iter() {
+                match skill.0.as_str() {
+                    "Melee" => {
+                        skills.skills.insert(Skill::Melee, *skill.1);
+                    }
+                    "Defense" => {
+                        skills.skills.insert(Skill::Defense, *skill.1);
+                    }
+                    "Magic" => {
+                        skills.skills.insert(Skill::Magic, *skill.1);
+                    }
+                    _ => {
+                        rltk::console::log(format!("Unknown skill referenced: [{}]", skill.0));
+                    }
+                }
+            }
+        }
+        entity_builder = entity_builder.with(skills);
+
+        let mob_level = if mob_template.level.is_some() {
+            mob_template.level.unwrap()
+        } else {
+            1
+        };
+        let mob_hp = npc_hp(mob_fitness, mob_level);
+        let mob_mana = mana_at_level(mob_intelligence, mob_level);
+
+        let pools = Pools {
+            level: mob_level,
+            xp: 0,
+            hit_points: Pool {
+                max: mob_hp,
+                current: mob_hp,
+            },
+            mana: Pool {
+                max: mob_mana,
+                current: mob_mana,
+            },
+        };
+        entity_builder = entity_builder.with(pools);
+
         entity_builder = entity_builder.with(Viewshed {
             visible_tiles: Vec::new(),
             range: mob_template.vision_range,

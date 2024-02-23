@@ -1,6 +1,7 @@
 extern crate serde;
 pub mod camera;
 mod components;
+pub mod game_system;
 mod gamelog;
 mod gui;
 mod map;
@@ -14,6 +15,7 @@ mod spawner;
 mod systems;
 
 pub use components::*;
+pub use game_system::*;
 pub use map::*;
 pub use player::*;
 pub use rect::Rect;
@@ -379,16 +381,10 @@ impl State {
 
         self.generate_world_map(current_depth + 1);
 
-        // Notify the player and give them some health
-        let player_entity = self.ecs.fetch::<Entity>();
+        // Notify the player
         let mut log = self.ecs.fetch_mut::<gamelog::GameLog>();
         log.entries
-            .push("You descend to the next level, and take a moment to heal.".to_string());
-        let mut player_health_store = self.ecs.write_storage::<CombatStats>();
-        let player_health = player_health_store.get_mut(*player_entity);
-        if let Some(player_health) = player_health {
-            player_health.hp = i32::max(player_health.hp, player_health.max_hp / 2);
-        }
+            .push("You descend to the next level.".to_string());
     }
 
     fn game_over_cleanup(&mut self) {
@@ -483,7 +479,6 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Monster>();
     gs.ecs.register::<Name>();
     gs.ecs.register::<BlocksTile>();
-    gs.ecs.register::<CombatStats>();
     gs.ecs.register::<WantsToMelee>();
     gs.ecs.register::<SufferDamage>();
     gs.ecs.register::<Item>();
@@ -517,6 +512,9 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Bystander>();
     gs.ecs.register::<Vendor>();
     gs.ecs.register::<Quips>();
+    gs.ecs.register::<Attributes>();
+    gs.ecs.register::<Skills>();
+    gs.ecs.register::<Pools>();
 
     gs.ecs.insert(particle_system::ParticleBuilder::new());
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
