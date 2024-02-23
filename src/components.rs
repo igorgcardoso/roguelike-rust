@@ -213,3 +213,11 @@ pub struct Door {
 
 #[derive(Component, Debug, Serialize, Deserialize, Clone)]
 pub struct Bystander {}
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct Vendor {}
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct Quips {
+    pub available: Vec<String>,
+}

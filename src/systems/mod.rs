@@ -28,4 +28,7 @@ pub use hunger_system::*;
 pub mod trigger_system;
 pub use trigger_system::*;
 
+pub mod bystander_ai_system;
+pub use bystander_ai_system::*;
+
 pub use super::*;

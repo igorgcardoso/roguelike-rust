@@ -215,7 +215,14 @@ pub fn spawn_named_mob(
         match mob_template.ai.as_ref() {
             "melee" => entity_builder = entity_builder.with(Monster {}),
             "bystander" => entity_builder = entity_builder.with(Bystander {}),
+            "vendor" => entity_builder = entity_builder.with(Vendor {}),
             _ => {}
+        }
+
+        if let Some(quips) = &mob_template.quips {
+            entity_builder = entity_builder.with(Quips {
+                available: quips.clone(),
+            });
         }
 
         if mob_template.blocks_tile {

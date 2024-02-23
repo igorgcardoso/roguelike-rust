@@ -82,7 +82,9 @@ pub fn save_game(ecs: &mut World) {
             SingleActivation,
             Door,
             BlocksVisibility,
-            Bystander
+            Bystander,
+            Vendor,
+            Quips
         );
     }
 
@@ -175,7 +177,9 @@ pub fn load_game(ecs: &mut World) {
             SingleActivation,
             Door,
             BlocksVisibility,
-            Bystander
+            Bystander,
+            Vendor,
+            Quips
         );
     }
 
