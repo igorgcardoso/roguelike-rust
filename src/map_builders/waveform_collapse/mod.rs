@@ -31,12 +31,16 @@ impl WaveformCollapseBuilder {
         let constraints = patterns_to_constraints(patterns, CHUNK_SIZE);
         self.render_tile_gallery(&constraints, CHUNK_SIZE, build_data);
 
+        let old_map = build_data.map.clone();
+
         build_data.map = Map::new(
             build_data.map.depth,
             build_data.width,
             build_data.height,
             &build_data.map.name,
         );
+
+        let mut tries = 0;
         loop {
             let mut solver = Solver::new(constraints.clone(), CHUNK_SIZE, &build_data.map);
             while !solver.iteration(&mut build_data.map, rng) {
@@ -46,7 +50,17 @@ impl WaveformCollapseBuilder {
             if solver.possible {
                 break;
             } // If it has hit an impossible condition, try again
+            tries += 1;
+            if tries > 10 {
+                break;
+            }
         }
+
+        if tries > 10 {
+            // Restore the old one
+            build_data.map = old_map;
+        }
+
         build_data.spawn_list.clear();
     }
 

@@ -351,7 +351,9 @@ impl PrefabBuilder {
                         let idx = build_data
                             .map
                             .xy_idx(tx as i32 + chunk_x, ty as i32 + chunk_y);
-                        self.char_to_map(string_vec[i], idx, build_data);
+                        if i < string_vec.len() {
+                            self.char_to_map(string_vec[i], idx, build_data);
+                        }
                         used_tiles.insert(idx);
                         i += 1;
                     }

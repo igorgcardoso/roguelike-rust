@@ -107,8 +107,6 @@ pub fn paint(map: &mut Map, mode: Symmetry, brush_size: i32, x: i32, y: i32) {
             }
         }
     }
-    let digger_idx = map.xy_idx(x, y);
-    map.tiles[digger_idx] = TileType::Floor;
 }
 
 fn apply_paint(map: &mut Map, brush_size: i32, x: i32, y: i32) {
@@ -121,8 +119,14 @@ fn apply_paint(map: &mut Map, brush_size: i32, x: i32, y: i32) {
             let half_brush_size = brush_size / 2;
             for brush_y in y - half_brush_size..y + half_brush_size {
                 for brush_x in x - half_brush_size..x + half_brush_size {
-                    let digger_idx = map.xy_idx(brush_x, brush_y);
-                    map.tiles[digger_idx] = TileType::Floor;
+                    if brush_x > 1
+                        && brush_x < map.width - 1
+                        && brush_y > 1
+                        && brush_y < map.height - 1
+                    {
+                        let digger_idx = map.xy_idx(brush_x, brush_y);
+                        map.tiles[digger_idx] = TileType::Floor;
+                    }
                 }
             }
         }

@@ -100,7 +100,7 @@ impl Solver {
             *remain = (remain.0, neighbors_count);
         }
 
-        remain_copy.sort_by(|a, b| a.1.cmp(&b.1));
+        remain_copy.sort_by(|a, b| b.1.cmp(&a.1));
         self.remaining = remain_copy;
 
         // Pick a random chunk we haven't dealt with yet and get its index, remove from remaining list
@@ -206,28 +206,27 @@ impl Solver {
                 rltk::console::log("Oh no! It's not possible!");
                 self.possible = false;
                 return true;
+            }
+            let new_chunk_idx = if possible_options.len() == 1 {
+                0
             } else {
-                let new_chunk_idx = if possible_options.len() == 1 {
-                    0
-                } else {
-                    rng.roll_dice(1, possible_options.len() as i32) - 1
-                };
+                rng.roll_dice(1, possible_options.len() as i32) - 1
+            };
 
-                self.chunks[chunk_index] = Some(possible_options[new_chunk_idx as usize]);
-                let left_x = chunk_x as i32 * self.chunk_size;
-                let right_x = (chunk_x + 1) as i32 * self.chunk_size;
-                let top_y = chunk_y as i32 * self.chunk_size;
-                let bottom_y = (chunk_y + 1) as i32 * self.chunk_size;
+            self.chunks[chunk_index] = Some(possible_options[new_chunk_idx as usize]);
+            let left_x = chunk_x as i32 * self.chunk_size;
+            let right_x = (chunk_x + 1) as i32 * self.chunk_size;
+            let top_y = chunk_y as i32 * self.chunk_size;
+            let bottom_y = (chunk_y + 1) as i32 * self.chunk_size;
 
-                let mut i: usize = 0;
-                for y in top_y..bottom_y {
-                    for x in left_x..right_x {
-                        let map_idx = map.xy_idx(x, y);
-                        let tile =
-                            self.constraints[possible_options[new_chunk_idx as usize]].pattern[i];
-                        map.tiles[map_idx] = tile;
-                        i += 1;
-                    }
+            let mut i: usize = 0;
+            for y in top_y..bottom_y {
+                for x in left_x..right_x {
+                    let map_idx = map.xy_idx(x, y);
+                    let tile =
+                        self.constraints[possible_options[new_chunk_idx as usize]].pattern[i];
+                    map.tiles[map_idx] = tile;
+                    i += 1;
                 }
             }
         }
