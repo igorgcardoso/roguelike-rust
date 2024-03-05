@@ -7,6 +7,7 @@ mod distant_exit;
 mod dla;
 mod door_placement;
 mod drunkward;
+mod forest;
 mod maze;
 mod prefab_builder;
 mod room_based;
@@ -26,6 +27,7 @@ use distant_exit::DistantExit;
 use dla::DLABuilder;
 use door_placement::DoorPlacement;
 use drunkward::DrunkardsWalkBuilder;
+use forest::forest_builder;
 use maze::MazeBuilder;
 use prefab_builder::PrefabBuilder;
 use room_based::{
@@ -296,6 +298,7 @@ pub fn level_builder(
     rltk::console::log(format!("Depth: {}", new_depth));
     match new_depth {
         1 => town_builder(new_depth, rng, width, height),
+        2 => forest_builder(new_depth, rng, width, height),
         _ => random_builder(new_depth, rng, width, height),
     }
 }

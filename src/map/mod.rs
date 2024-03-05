@@ -1,9 +1,11 @@
+mod theme;
 mod tile_type;
 
 use super::*;
 use rltk::{Algorithm2D, BaseMap, Point};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
+pub use theme::*;
 pub use tile_type::{get_tile_cost, is_tile_opaque, is_tile_walkable, TileType};
 
 #[derive(Default, Serialize, Deserialize, Clone)]

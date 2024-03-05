@@ -18,6 +18,7 @@ pub struct RawMaster {
     item_index: HashMap<String, usize>,
     mob_index: HashMap<String, usize>,
     prop_index: HashMap<String, usize>,
+    loot_index: HashMap<String, usize>,
 }
 
 impl RawMaster {
@@ -28,10 +29,12 @@ impl RawMaster {
                 mobs: Vec::new(),
                 props: Vec::new(),
                 spawn_table: Vec::new(),
+                loot_tables: Vec::new(),
             },
             item_index: HashMap::new(),
             mob_index: HashMap::new(),
             prop_index: HashMap::new(),
+            loot_index: HashMap::new(),
         }
     }
 
@@ -77,6 +80,10 @@ impl RawMaster {
                     spawn.name
                 ));
             }
+        }
+
+        for (idx, loot) in self.raws.loot_tables.iter().enumerate() {
+            self.loot_index.insert(loot.name.clone(), idx);
         }
     }
 }
@@ -142,6 +149,21 @@ fn get_renderable_component(
     }
 }
 
+pub fn get_item_drop(
+    raws: &RawMaster,
+    rng: &mut rltk::RandomNumberGenerator,
+    table: &str,
+) -> Option<String> {
+    if raws.loot_index.contains_key(table) {
+        let mut random_table = RandomTable::new();
+        let available_options = &raws.raws.loot_tables[raws.loot_index[table]];
+        for item in available_options.drops.iter() {
+            random_table = random_table.add(item.name.clone(), item.weight);
+        }
+        return Some(random_table.roll(rng));
+    }
+    None
+}
 pub fn parse_dice_string(dice: &str) -> (i32, i32, i32) {
     lazy_static! {
         static ref DICE_RE: Regex = Regex::new(r"(\d+)d(\d+)([\+\-]\d+)?").unwrap();
@@ -294,6 +316,8 @@ pub fn spawn_named_mob(
             "melee" => entity_builder = entity_builder.with(Monster {}),
             "bystander" => entity_builder = entity_builder.with(Bystander {}),
             "vendor" => entity_builder = entity_builder.with(Vendor {}),
+            "carnivore" => entity_builder = entity_builder.with(Carnivore {}),
+            "herbivore" => entity_builder = entity_builder.with(Herbivore {}),
             _ => {}
         }
 
@@ -439,6 +463,12 @@ pub fn spawn_named_mob(
                 }
             }
             entity_builder = entity_builder.with(nature);
+        }
+
+        if let Some(loot) = &mob_template.loot_table {
+            entity_builder = entity_builder.with(LootTable {
+                table: loot.clone(),
+            });
         }
 
         let new_mob = entity_builder.build();

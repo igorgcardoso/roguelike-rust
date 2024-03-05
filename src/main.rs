@@ -320,6 +320,9 @@ impl State {
         let mut particles = particle_system::ParticleSpawnSystem {};
         particles.run_now(&self.ecs);
 
+        let mut animal_ai = AnimalAI {};
+        animal_ai.run_now(&self.ecs);
+
         self.ecs.maintain();
     }
 }
@@ -517,6 +520,9 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Skills>();
     gs.ecs.register::<Pools>();
     gs.ecs.register::<NaturalAttackDefense>();
+    gs.ecs.register::<LootTable>();
+    gs.ecs.register::<Carnivore>();
+    gs.ecs.register::<Herbivore>();
 
     gs.ecs.insert(particle_system::ParticleBuilder::new());
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
