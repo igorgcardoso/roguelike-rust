@@ -73,6 +73,7 @@ impl<'a> System<'a> for TriggerSystem {
                                     &mut inflict_damage,
                                     entity,
                                     damage.damage,
+                                    false,
                                 );
                             }
 

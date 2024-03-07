@@ -80,8 +80,11 @@ pub fn draw_ui(ecs: &World, ctx: &mut Rltk) {
         "Mana: {} / {}",
         player_pools.mana.current, player_pools.mana.max
     );
+    let xp = format!("Level: {}", player_pools.level);
     ctx.print_color(50, 1, white, black, &health);
     ctx.print_color(50, 2, white, black, &mana);
+    ctx.print_color(50, 3, white, black, &xp);
+    let xp_level_start = (player_pools.level - 1) * 1000;
     ctx.draw_bar_horizontal(
         64,
         1,
@@ -100,14 +103,23 @@ pub fn draw_ui(ecs: &World, ctx: &mut Rltk) {
         RGB::named(rltk::BLUE),
         black,
     );
+    ctx.draw_bar_horizontal(
+        64,
+        3,
+        14,
+        player_pools.xp - xp_level_start,
+        1000,
+        RGB::named(rltk::GOLD),
+        black,
+    );
 
     // Attributes
     let attributes = ecs.read_storage::<Attributes>();
     let attr = attributes.get(*player_entity).unwrap();
-    draw_attributes("Might:", &attr.might, 3, ctx);
-    draw_attributes("Quickness:", &attr.quickness, 4, ctx);
-    draw_attributes("Fitness:", &attr.fitness, 5, ctx);
-    draw_attributes("Intelligence:", &attr.intelligence, 6, ctx);
+    draw_attributes("Might:", &attr.might, 4, ctx);
+    draw_attributes("Quickness:", &attr.quickness, 5, ctx);
+    draw_attributes("Fitness:", &attr.fitness, 6, ctx);
+    draw_attributes("Intelligence:", &attr.intelligence, 7, ctx);
 
     // Equipped
     let mut y = 9;

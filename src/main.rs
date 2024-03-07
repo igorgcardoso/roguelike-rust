@@ -531,6 +531,8 @@ fn main() -> rltk::BError {
     gs.ecs.insert(Map::new(1, 64, 64, "New Map"));
     gs.ecs.insert(Point::new(0, 0));
 
+    raws::load_raws();
+
     let player_entity = spawner::player(&mut gs.ecs, 0, 0);
     gs.ecs.insert(player_entity);
 
@@ -540,8 +542,6 @@ fn main() -> rltk::BError {
     gs.ecs.insert(gamelog::GameLog {
         entries: vec!["Welcome to Rusty Roguelike".to_string()],
     });
-
-    raws::load_raws();
 
     gs.generate_world_map(1);
 
