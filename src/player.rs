@@ -7,7 +7,7 @@ use rltk::{Point, Rltk, VirtualKeyCode};
 use specs::prelude::*;
 use std::cmp::{max, min};
 
-pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
+pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState {
     let mut positions = ecs.write_storage::<Position>();
     let players = ecs.write_storage::<Player>();
     let mut viewsheds = ecs.write_storage::<Viewshed>();
@@ -23,13 +23,15 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
     let bystanders = ecs.read_storage::<Bystander>();
     let vendors = ecs.read_storage::<Vendor>();
 
+    let mut result = RunState::AwaitingInput;
+
     let mut swap_entities: Vec<(Entity, i32, i32)> = Vec::new();
 
     for (entity, _player, pos, viewshed) in
         (&entities, &players, &mut positions, &mut viewsheds).join()
     {
         if pos.x + delta_x < 0 || pos.x + delta_x > map.width - 1 {
-            return;
+            return RunState::AwaitingInput;
         }
         let destination_idx = map.xy_idx(pos.x + delta_x, pos.y + delta_y);
 
@@ -45,6 +47,7 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
                 entity_moved
                     .insert(entity, EntityMoved {})
                     .expect("Unable to insert marker");
+                result = RunState::PlayerTurn;
             } else {
                 let target = pools.get(*potential_target);
                 if let Some(_target) = target {
@@ -56,7 +59,7 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
                             },
                         )
                         .expect("Add target failed");
-                    return;
+                    return RunState::PlayerTurn;
                 }
             }
             let door = doors.get_mut(*potential_target);
@@ -74,13 +77,21 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
             pos.y = min(map.height - 1, max(0, pos.y + delta_y));
 
             viewshed.dirty = true;
-            let mut ppos = ecs.write_resource::<Point>();
-            ppos.x = pos.x;
-            ppos.y = pos.y;
+            let mut player_pos = ecs.write_resource::<Point>();
+            player_pos.x = pos.x;
+            player_pos.y = pos.y;
 
             entity_moved
                 .insert(entity, EntityMoved {})
                 .expect("Unable to insert marker");
+
+            result = RunState::PlayerTurn;
+
+            match map.tiles[destination_idx] {
+                TileType::DownStairs => result = RunState::NextLevel,
+                TileType::UpStairs => result = RunState::PreviousLevel,
+                _ => {}
+            }
         }
     }
 
@@ -91,6 +102,8 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) {
             their_pos.y = swap.2;
         }
     }
+
+    result
 }
 
 fn get_item(ecs: &mut World) {
@@ -140,6 +153,19 @@ pub fn try_next_level(ecs: &mut World) -> bool {
         false
     }
 }
+pub fn try_previous_level(ecs: &mut World) -> bool {
+    let player_pos = ecs.fetch::<Point>();
+    let map = ecs.fetch::<Map>();
+    let player_idx = map.xy_idx(player_pos.x, player_pos.y);
+    if map.tiles[player_idx] == TileType::UpStairs {
+        true
+    } else {
+        let mut log = ecs.fetch_mut::<GameLog>();
+        log.entries
+            .push("There is no way up from here.".to_string());
+        false
+    }
+}
 
 pub fn player_input(gs: &mut State, ctx: &mut Rltk) -> RunState {
     // Hotkeys
@@ -165,21 +191,29 @@ pub fn player_input(gs: &mut State, ctx: &mut Rltk) -> RunState {
         None => return RunState::AwaitingInput, // Nothing happened
         Some(key) => match key {
             VirtualKeyCode::W | VirtualKeyCode::Up | VirtualKeyCode::Numpad8 => {
-                try_move_player(0, -1, &mut gs.ecs)
+                return try_move_player(0, -1, &mut gs.ecs)
             }
-            VirtualKeyCode::Q | VirtualKeyCode::Numpad7 => try_move_player(-1, -1, &mut gs.ecs),
+            VirtualKeyCode::Q | VirtualKeyCode::Numpad7 => {
+                return try_move_player(-1, -1, &mut gs.ecs)
+            }
             VirtualKeyCode::A | VirtualKeyCode::Left | VirtualKeyCode::Numpad4 => {
-                try_move_player(-1, 0, &mut gs.ecs)
+                return try_move_player(-1, 0, &mut gs.ecs)
             }
-            VirtualKeyCode::E | VirtualKeyCode::Numpad9 => try_move_player(1, -1, &mut gs.ecs),
+            VirtualKeyCode::E | VirtualKeyCode::Numpad9 => {
+                return try_move_player(1, -1, &mut gs.ecs)
+            }
             VirtualKeyCode::S | VirtualKeyCode::Down | VirtualKeyCode::Numpad2 => {
-                try_move_player(0, 1, &mut gs.ecs)
+                return try_move_player(0, 1, &mut gs.ecs)
             }
-            VirtualKeyCode::Z | VirtualKeyCode::Numpad1 => try_move_player(-1, 1, &mut gs.ecs),
+            VirtualKeyCode::Z | VirtualKeyCode::Numpad1 => {
+                return try_move_player(-1, 1, &mut gs.ecs)
+            }
             VirtualKeyCode::D | VirtualKeyCode::Right | VirtualKeyCode::Numpad6 => {
-                try_move_player(1, 0, &mut gs.ecs)
+                return try_move_player(1, 0, &mut gs.ecs)
             }
-            VirtualKeyCode::C | VirtualKeyCode::Numpad3 => try_move_player(1, 1, &mut gs.ecs),
+            VirtualKeyCode::C | VirtualKeyCode::Numpad3 => {
+                return try_move_player(1, 1, &mut gs.ecs)
+            }
             VirtualKeyCode::G => get_item(&mut gs.ecs),
             VirtualKeyCode::B => return RunState::ShowInventory,
             VirtualKeyCode::V => return RunState::ShowDropItem,
@@ -189,6 +223,11 @@ pub fn player_input(gs: &mut State, ctx: &mut Rltk) -> RunState {
             VirtualKeyCode::Period => {
                 if try_next_level(&mut gs.ecs) {
                     return RunState::NextLevel;
+                }
+            }
+            VirtualKeyCode::Comma => {
+                if try_previous_level(&mut gs.ecs) {
+                    return RunState::PreviousLevel;
                 }
             }
             VirtualKeyCode::Space => return skip_turn(&mut gs.ecs),

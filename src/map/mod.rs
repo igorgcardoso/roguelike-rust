@@ -1,12 +1,16 @@
+pub mod dungeon;
 mod theme;
 mod tile_type;
 
+pub use self::{
+    dungeon::{freeze_level_entities, level_transition, thaw_level_entities, MasterDungeonMap},
+    theme::*,
+    tile_type::{get_tile_cost, is_tile_opaque, is_tile_walkable, TileType},
+};
 use super::*;
 use rltk::{Algorithm2D, BaseMap, Point};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
-pub use theme::*;
-pub use tile_type::{get_tile_cost, is_tile_opaque, is_tile_walkable, TileType};
 
 #[derive(Default, Serialize, Deserialize, Clone)]
 pub struct Map {
