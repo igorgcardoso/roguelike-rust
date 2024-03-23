@@ -24,6 +24,8 @@ pub struct Map {
     pub bloodstains: HashSet<usize>,
     pub view_blocked: HashSet<usize>,
     pub name: String,
+    pub outdoors: bool,
+    pub light: Vec<rltk::RGB>,
 
     #[serde(skip_serializing)]
     #[serde(skip_deserializing)]
@@ -45,6 +47,8 @@ impl Map {
             bloodstains: HashSet::new(),
             view_blocked: HashSet::new(),
             name: name.to_string(),
+            outdoors: true,
+            light: vec![rltk::RGB::from_f32(0.0, 0.0, 0.0); map_tile_count],
         }
     }
     pub fn xy_idx(&self, x: i32, y: i32) -> usize {

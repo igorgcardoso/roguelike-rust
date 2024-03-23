@@ -3,6 +3,8 @@ use serde::{Deserialize, Serialize};
 #[derive(PartialEq, Eq, Hash, Copy, Clone, Serialize, Deserialize)]
 pub enum TileType {
     Wall,
+    Stalactite,
+    Stalagmite,
     Floor,
     DownStairs,
     Road,
@@ -20,6 +22,7 @@ pub fn is_tile_walkable(tile_type: TileType) -> bool {
         tile_type,
         TileType::Floor
             | TileType::DownStairs
+            | TileType::UpStairs
             | TileType::Road
             | TileType::Grass
             | TileType::ShallowWater
@@ -30,7 +33,10 @@ pub fn is_tile_walkable(tile_type: TileType) -> bool {
 }
 
 pub fn is_tile_opaque(tile_type: TileType) -> bool {
-    matches!(tile_type, TileType::Wall)
+    matches!(
+        tile_type,
+        TileType::Wall | TileType::Stalactite | TileType::Stalagmite
+    )
 }
 
 pub fn get_tile_cost(tile_type: TileType) -> f32 {

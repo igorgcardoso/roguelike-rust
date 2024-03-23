@@ -2,8 +2,8 @@ use crate::attribute_bonus;
 
 use super::{
     mana_at_level, player_hp_at_level, random_table::RandomTable, raws::*, Attribute, Attributes,
-    HungerClock, HungerState, Map, Name, Player, Pool, Pools, Position, Rect, Renderable,
-    SerializeMe, Skill, Skills, TileType, Viewshed,
+    HungerClock, HungerState, LightSource, Map, Name, Player, Pool, Pools, Position, Rect,
+    Renderable, SerializeMe, Skill, Skills, TileType, Viewshed,
 };
 use rltk::{RandomNumberGenerator, RGB};
 use specs::prelude::*;
@@ -81,6 +81,10 @@ pub fn player(ecs: &mut World, player_x: i32, player_y: i32) -> Entity {
             },
             xp: 0,
             level: 1,
+        })
+        .with(LightSource {
+            color: rltk::RGB::from_f32(1.0, 1.0, 0.5),
+            range: 8,
         })
         .marked::<SimpleMarker<SerializeMe>>()
         .build();

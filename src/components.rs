@@ -315,3 +315,9 @@ pub struct OtherLevelPosition {
     pub y: i32,
     pub depth: i32,
 }
+
+#[derive(Component, Debug, Serialize, Deserialize, Clone)]
+pub struct LightSource {
+    pub color: RGB,
+    pub range: i32,
+}

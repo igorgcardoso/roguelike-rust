@@ -51,6 +51,7 @@ pub enum RunState {
         row: i32,
     },
     MapGeneration,
+    ShowCheatMenu,
 }
 
 pub struct State {
@@ -276,6 +277,18 @@ impl GameState for State {
                     newrunstate = RunState::MagicMapReveal { row: row + 1 };
                 }
             }
+            RunState::ShowCheatMenu => {
+                let result = gui::show_cheat_mode(self, ctx);
+                match result {
+                    gui::CheatMenuResult::Cancel => newrunstate = RunState::AwaitingInput,
+                    gui::CheatMenuResult::NoResponse => {}
+                    gui::CheatMenuResult::TeleportToExit => {
+                        self.goto_level(1);
+                        self.mapgen_next_state = Some(RunState::PreRun);
+                        newrunstate = RunState::MapGeneration;
+                    }
+                }
+            }
         }
 
         {
@@ -290,6 +303,9 @@ impl State {
     fn run_systems(&mut self) {
         let mut vis = VisibilitySystem {};
         vis.run_now(&self.ecs);
+
+        let mut lighting = LightingSystem {};
+        lighting.run_now(&self.ecs);
 
         let mut mob = MonsterAI {};
         mob.run_now(&self.ecs);
@@ -451,6 +467,7 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Herbivore>();
     gs.ecs.register::<OtherLevelPosition>();
     gs.ecs.register::<DMSerializationHelper>();
+    gs.ecs.register::<LightSource>();
 
     gs.ecs.insert(particle_system::ParticleBuilder::new());
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());

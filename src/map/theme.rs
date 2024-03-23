@@ -4,6 +4,7 @@ use rltk::RGB;
 pub fn get_tile_glyph(idx: usize, map: &Map) -> (rltk::FontCharType, RGB, RGB) {
     let (glyph, mut fg, mut bg) = match map.depth {
         2 => get_forest_glyph(idx, map),
+        3 => get_limestone_cavern_glyph(idx, map),
         _ => get_tile_glyph_default(idx, map),
     };
 
@@ -13,6 +14,9 @@ pub fn get_tile_glyph(idx: usize, map: &Map) -> (rltk::FontCharType, RGB, RGB) {
     if !map.visible_tiles[idx] {
         fg = fg.to_greyscale();
         bg = RGB::from_f32(0.0, 0.0, 0.0); // Don't show stains out of visual range
+    } else if !map.outdoors {
+        fg = fg * map.light[idx];
+        bg = bg * map.light[idx];
     }
 
     (glyph, fg, bg)
@@ -121,6 +125,14 @@ fn get_tile_glyph_default(idx: usize, map: &Map) -> (rltk::FontCharType, RGB, RG
             glyph = rltk::to_cp437('<');
             fg = RGB::from_f32(0., 1.0, 1.0);
         }
+        TileType::Stalactite => {
+            glyph = rltk::to_cp437('╨');
+            fg = RGB::from_f32(0.5, 0.5, 0.5);
+        }
+        TileType::Stalagmite => {
+            glyph = rltk::to_cp437('╥');
+            fg = RGB::from_f32(0.5, 0.5, 0.5);
+        }
     }
 
     (glyph, fg, bg)
@@ -169,4 +181,63 @@ fn wall_glyph(map: &Map, x: i32, y: i32) -> rltk::FontCharType {
 fn is_revealed_and_wall(map: &Map, x: i32, y: i32) -> bool {
     let idx = map.xy_idx(x, y);
     map.tiles[idx] == TileType::Wall && map.revealed_tiles[idx]
+}
+
+fn get_limestone_cavern_glyph(idx: usize, map: &Map) -> (rltk::FontCharType, RGB, RGB) {
+    let glyph;
+    let fg;
+    let bg = RGB::from_f32(0.0, 0.0, 0.0);
+
+    match map.tiles[idx] {
+        TileType::Wall => {
+            glyph = rltk::to_cp437('▒');
+            fg = RGB::from_f32(0.7, 0.7, 0.7);
+        }
+        TileType::Bridge => {
+            glyph = rltk::to_cp437('.');
+            fg = RGB::named(rltk::CHOCOLATE);
+        }
+        TileType::Road => {
+            glyph = rltk::to_cp437('≡');
+            fg = RGB::named(rltk::YELLOW);
+        }
+        TileType::Grass => {
+            glyph = rltk::to_cp437('"');
+            fg = RGB::named(rltk::GREEN);
+        }
+        TileType::ShallowWater => {
+            glyph = rltk::to_cp437('░');
+            fg = RGB::named(rltk::CYAN);
+        }
+        TileType::DeepWater => {
+            glyph = rltk::to_cp437('▓');
+            fg = RGB::named(rltk::BLUE);
+        }
+        TileType::Gravel => {
+            glyph = rltk::to_cp437(';');
+            fg = RGB::from_f32(0.5, 0.5, 0.5);
+        }
+        TileType::DownStairs => {
+            glyph = rltk::to_cp437('>');
+            fg = RGB::from_f32(0., 1.0, 1.0);
+        }
+        TileType::UpStairs => {
+            glyph = rltk::to_cp437('<');
+            fg = RGB::from_f32(0., 1.0, 1.0);
+        }
+        TileType::Stalactite => {
+            glyph = rltk::to_cp437('╨');
+            fg = RGB::from_f32(0.5, 0.5, 0.5);
+        }
+        TileType::Stalagmite => {
+            glyph = rltk::to_cp437('╥');
+            fg = RGB::from_f32(0.5, 0.5, 0.5);
+        }
+        _ => {
+            glyph = rltk::to_cp437('░');
+            fg = RGB::from_f32(0.4, 0.4, 0.4);
+        }
+    }
+
+    (glyph, fg, bg)
 }
