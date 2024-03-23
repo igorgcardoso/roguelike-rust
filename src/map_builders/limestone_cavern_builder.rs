@@ -2,7 +2,6 @@ use super::{
     AreaStartingPosition, BuilderChain, BuilderMap, CullUnreachable, DistantExit,
     DrunkardsWalkBuilder, MetaMapBuilder, TileType, VoronoiSpawning, XStart, YStart,
 };
-use crate::Map;
 use rltk::RandomNumberGenerator;
 
 pub fn limestone_cavern_builder(
