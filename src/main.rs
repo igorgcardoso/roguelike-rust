@@ -117,7 +117,6 @@ impl GameState for State {
             RunState::Ticking => {
                 while newrunstate == RunState::Ticking {
                     self.run_systems();
-                    self.ecs.maintain();
                     match *self.ecs.fetch::<RunState>() {
                         RunState::AwaitingInput => newrunstate = RunState::AwaitingInput,
                         RunState::MagicMapReveal { .. } => {
