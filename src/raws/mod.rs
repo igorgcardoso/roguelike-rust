@@ -1,3 +1,4 @@
+mod faction_structs;
 mod item_structs;
 mod loot_structs;
 mod mob_structs;
@@ -5,6 +6,8 @@ mod prop_structs;
 mod raw_master;
 mod spawn_table_structs;
 
+use faction_structs::FactionInfo;
+pub use faction_structs::Reaction;
 use item_structs::*;
 use loot_structs::*;
 use mob_structs::*;
@@ -27,6 +30,7 @@ pub struct Raws {
     pub props: Vec<Prop>,
     pub spawn_table: Vec<SpawnTableEntry>,
     pub loot_tables: Vec<LootTable>,
+    pub faction_table: Vec<FactionInfo>,
 }
 
 pub fn load_raws() {

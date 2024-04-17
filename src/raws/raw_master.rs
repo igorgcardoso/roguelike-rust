@@ -1,4 +1,4 @@
-use super::Raws;
+use super::{faction_structs::Reaction, Raws};
 use crate::{attribute_bonus, components::*, mana_at_level, npc_hp, random_table::RandomTable};
 use regex::Regex;
 use specs::{
@@ -19,6 +19,7 @@ pub struct RawMaster {
     mob_index: HashMap<String, usize>,
     prop_index: HashMap<String, usize>,
     loot_index: HashMap<String, usize>,
+    faction_index: HashMap<String, HashMap<String, Reaction>>,
 }
 
 impl RawMaster {
@@ -30,11 +31,13 @@ impl RawMaster {
                 props: Vec::new(),
                 spawn_table: Vec::new(),
                 loot_tables: Vec::new(),
+                faction_table: Vec::new(),
             },
             item_index: HashMap::new(),
             mob_index: HashMap::new(),
             prop_index: HashMap::new(),
             loot_index: HashMap::new(),
+            faction_index: HashMap::new(),
         }
     }
 
@@ -84,6 +87,21 @@ impl RawMaster {
 
         for (idx, loot) in self.raws.loot_tables.iter().enumerate() {
             self.loot_index.insert(loot.name.clone(), idx);
+        }
+
+        for faction in self.raws.faction_table.iter() {
+            let mut reactions: HashMap<String, Reaction> = HashMap::new();
+            for other in faction.responses.iter() {
+                reactions.insert(
+                    other.0.clone(),
+                    match other.1.as_str() {
+                        "ignore" => Reaction::Ignore,
+                        "flee" => Reaction::Flee,
+                        _ => Reaction::Attack,
+                    },
+                );
+            }
+            self.faction_index.insert(faction.name.clone(), reactions);
         }
     }
 }
@@ -312,13 +330,22 @@ pub fn spawn_named_mob(
             name: mob_template.name.clone(),
         });
 
-        match mob_template.ai.as_ref() {
-            "melee" => entity_builder = entity_builder.with(Monster {}),
-            "bystander" => entity_builder = entity_builder.with(Bystander {}),
-            "vendor" => entity_builder = entity_builder.with(Vendor {}),
-            "carnivore" => entity_builder = entity_builder.with(Carnivore {}),
-            "herbivore" => entity_builder = entity_builder.with(Herbivore {}),
-            _ => {}
+        match mob_template.movement.as_ref() {
+            "random" => {
+                entity_builder = entity_builder.with(MoveMode {
+                    mode: Movement::Random,
+                })
+            }
+            "random_waypoint" => {
+                entity_builder = entity_builder.with(MoveMode {
+                    mode: Movement::RandomWaypoint { path: None },
+                })
+            }
+            _ => {
+                entity_builder = entity_builder.with(MoveMode {
+                    mode: Movement::Static,
+                })
+            }
         }
 
         if let Some(quips) = &mob_template.quips {
@@ -478,6 +505,18 @@ pub fn spawn_named_mob(
             });
         }
 
+        entity_builder = entity_builder.with(Initiative { current: 2 });
+
+        if let Some(faction) = &mob_template.faction {
+            entity_builder = entity_builder.with(Faction {
+                name: faction.clone(),
+            });
+        } else {
+            entity_builder = entity_builder.with(Faction {
+                name: "Mindless".to_string(),
+            })
+        }
+
         let new_mob = entity_builder.build();
 
         // Are they wielding anything
@@ -598,4 +637,18 @@ pub fn get_spawn_table_for_depth(raws: &RawMaster, depth: i32) -> RandomTable {
     }
 
     random_table
+}
+
+pub fn faction_reaction(my_faction: &str, their_faction: &str, raws: &RawMaster) -> Reaction {
+    if raws.faction_index.contains_key(my_faction) {
+        let mf = &raws.faction_index[my_faction];
+        if mf.contains_key(their_faction) {
+            return mf[their_faction];
+        } else if mf.contains_key("Default") {
+            return mf["Default"];
+        } else {
+            return Reaction::Ignore;
+        }
+    }
+    Reaction::Ignore
 }

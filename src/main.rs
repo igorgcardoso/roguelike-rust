@@ -1,4 +1,5 @@
 extern crate serde;
+mod ai;
 pub mod camera;
 mod components;
 pub mod game_system;
@@ -31,8 +32,7 @@ extern crate lazy_static;
 pub enum RunState {
     AwaitingInput,
     PreRun,
-    PlayerTurn,
-    MonsterTurn,
+    Ticking,
     ShowInventory,
     ShowDropItem,
     ShowTargeting {
@@ -114,20 +114,18 @@ impl GameState for State {
             RunState::AwaitingInput => {
                 newrunstate = player_input(self, ctx);
             }
-            RunState::PlayerTurn => {
-                self.run_systems();
-                self.ecs.maintain();
-                match *self.ecs.fetch::<RunState>() {
-                    RunState::MagicMapReveal { .. } => {
-                        newrunstate = RunState::MagicMapReveal { row: 0 }
+            RunState::Ticking => {
+                while newrunstate == RunState::Ticking {
+                    self.run_systems();
+                    self.ecs.maintain();
+                    match *self.ecs.fetch::<RunState>() {
+                        RunState::AwaitingInput => newrunstate = RunState::AwaitingInput,
+                        RunState::MagicMapReveal { .. } => {
+                            newrunstate = RunState::MagicMapReveal { row: 0 }
+                        }
+                        _ => newrunstate = RunState::Ticking,
                     }
-                    _ => newrunstate = RunState::MonsterTurn,
                 }
-            }
-            RunState::MonsterTurn => {
-                self.run_systems();
-                self.ecs.maintain();
-                newrunstate = RunState::AwaitingInput;
             }
             RunState::ShowInventory => {
                 let result = gui::show_inventory(self, ctx);
@@ -154,7 +152,7 @@ impl GameState for State {
                                     },
                                 )
                                 .expect("Unable to insert intent");
-                            newrunstate = RunState::PlayerTurn;
+                            newrunstate = RunState::Ticking;
                         }
                     }
                 }
@@ -173,7 +171,7 @@ impl GameState for State {
                                 WantsToDropItem { item: item_entity },
                             )
                             .expect("Unable to insert intent");
-                        newrunstate = RunState::PlayerTurn;
+                        newrunstate = RunState::Ticking;
                     }
                 }
             }
@@ -191,7 +189,7 @@ impl GameState for State {
                                 WantsToRemoveItem { item: item_entity },
                             )
                             .expect("Unable to insert intent");
-                        newrunstate = RunState::PlayerTurn;
+                        newrunstate = RunState::Ticking;
                     }
                 }
             }
@@ -211,7 +209,7 @@ impl GameState for State {
                                 },
                             )
                             .expect("Unable to insert intent");
-                        newrunstate = RunState::PlayerTurn;
+                        newrunstate = RunState::Ticking;
                     }
                 }
             }
@@ -272,7 +270,7 @@ impl GameState for State {
                     map.revealed_tiles[idx] = true;
                 }
                 if row == map.height - 1 {
-                    newrunstate = RunState::MonsterTurn;
+                    newrunstate = RunState::Ticking;
                 } else {
                     newrunstate = RunState::MagicMapReveal { row: row + 1 };
                 }
@@ -307,14 +305,35 @@ impl State {
         let mut lighting = LightingSystem {};
         lighting.run_now(&self.ecs);
 
-        let mut mob = MonsterAI {};
-        mob.run_now(&self.ecs);
-
         let mut mapindex = MapIndexingSystem {};
         mapindex.run_now(&self.ecs);
 
-        let mut bystander = BystanderAI {};
-        bystander.run_now(&self.ecs);
+        let mut initiative = ai::InitiativeSystem {};
+        initiative.run_now(&self.ecs);
+
+        let mut turn_status = ai::TurnStatusSystem {};
+        turn_status.run_now(&self.ecs);
+
+        let mut quipper = ai::QuipSystem {};
+        quipper.run_now(&self.ecs);
+
+        let mut adjacency = ai::AdjacentAI {};
+        adjacency.run_now(&self.ecs);
+
+        let mut visible = ai::VisibleAI {};
+        visible.run_now(&self.ecs);
+
+        let mut approach = ai::ApproachAI {};
+        approach.run_now(&self.ecs);
+
+        let mut flee = ai::FleeAI {};
+        flee.run_now(&self.ecs);
+
+        let mut default_move = ai::DefaultMoveAI {};
+        default_move.run_now(&self.ecs);
+
+        let mut chase = ai::ChaseAI {};
+        chase.run_now(&self.ecs);
 
         let mut melee = MeleeCombatSystem {};
         melee.run_now(&self.ecs);
@@ -341,9 +360,6 @@ impl State {
 
         let mut particles = particle_system::ParticleSpawnSystem {};
         particles.run_now(&self.ecs);
-
-        let mut animal_ai = AnimalAI {};
-        animal_ai.run_now(&self.ecs);
 
         self.ecs.maintain();
     }
@@ -422,7 +438,6 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Renderable>();
     gs.ecs.register::<Player>();
     gs.ecs.register::<Viewshed>();
-    gs.ecs.register::<Monster>();
     gs.ecs.register::<Name>();
     gs.ecs.register::<BlocksTile>();
     gs.ecs.register::<WantsToMelee>();
@@ -455,19 +470,22 @@ fn main() -> rltk::BError {
     gs.ecs.register::<SingleActivation>();
     gs.ecs.register::<BlocksVisibility>();
     gs.ecs.register::<Door>();
-    gs.ecs.register::<Bystander>();
-    gs.ecs.register::<Vendor>();
     gs.ecs.register::<Quips>();
     gs.ecs.register::<Attributes>();
     gs.ecs.register::<Skills>();
     gs.ecs.register::<Pools>();
     gs.ecs.register::<NaturalAttackDefense>();
     gs.ecs.register::<LootTable>();
-    gs.ecs.register::<Carnivore>();
-    gs.ecs.register::<Herbivore>();
     gs.ecs.register::<OtherLevelPosition>();
     gs.ecs.register::<DMSerializationHelper>();
     gs.ecs.register::<LightSource>();
+    gs.ecs.register::<Initiative>();
+    gs.ecs.register::<MyTurn>();
+    gs.ecs.register::<Faction>();
+    gs.ecs.register::<WantsToApproach>();
+    gs.ecs.register::<WantsToFlee>();
+    gs.ecs.register::<MoveMode>();
+    gs.ecs.register::<Chasing>();
 
     gs.ecs.insert(particle_system::ParticleBuilder::new());
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
