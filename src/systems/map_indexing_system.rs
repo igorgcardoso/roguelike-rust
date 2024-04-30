@@ -1,33 +1,31 @@
-use super::{BlocksTile, Map, Position};
+use super::{spatial, BlocksTile, Map, Pools, Position};
 use specs::prelude::*;
 
 pub struct MapIndexingSystem {}
 
 impl<'a> System<'a> for MapIndexingSystem {
     type SystemData = (
-        WriteExpect<'a, Map>,
+        ReadExpect<'a, Map>,
         ReadStorage<'a, Position>,
         ReadStorage<'a, BlocksTile>,
+        ReadStorage<'a, Pools>,
         Entities<'a>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
-        let (mut map, position, blockers, entities) = data;
+        let (map, position, blockers, pools, entities) = data;
 
-        map.populate_blocked();
-        map.clear_content_index();
+        spatial::clear();
+        spatial::populate_blocked_from_map(&map);
         for (entity, position) in (&entities, &position).join() {
-            let idx = map.xy_idx(position.x, position.y);
-
-            // If they block, update the blocking list
-            let _p: Option<&BlocksTile> = blockers.get(entity);
-            if let Some(_p) = _p {
-                map.blocked[idx] = true;
+            let mut alive = true;
+            if let Some(pools) = pools.get(entity) {
+                alive = pools.hit_points.current >= 1;
             }
-
-            // Push the entity to the appropriate index slot. It's a Copy
-            // type, so we don't need to clone it (we want to avoid moving it out of the ECS!)
-            map.tile_content[idx].push(entity);
+            if alive {
+                let idx = map.xy_idx(position.x, position.y);
+                spatial::index_entity(entity, idx, blockers.get(entity).is_some());
+            }
         }
     }
 }

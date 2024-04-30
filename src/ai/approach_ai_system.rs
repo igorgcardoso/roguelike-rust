@@ -9,7 +9,7 @@ impl<'a> System<'a> for ApproachAI {
         WriteStorage<'a, MyTurn>,
         WriteStorage<'a, WantsToApproach>,
         WriteStorage<'a, Position>,
-        WriteExpect<'a, Map>,
+        ReadExpect<'a, Map>,
         WriteStorage<'a, Viewshed>,
         WriteStorage<'a, EntityMoved>,
         Entities<'a>,
@@ -20,7 +20,7 @@ impl<'a> System<'a> for ApproachAI {
             mut turns,
             mut want_approach,
             mut positions,
-            mut map,
+            map,
             mut viewsheds,
             mut entity_moved,
             entities,
@@ -40,18 +40,17 @@ impl<'a> System<'a> for ApproachAI {
             let path = rltk::a_star_search(
                 map.xy_idx(pos.x, pos.y) as i32,
                 map.xy_idx(approach.idx % map.width, approach.idx / map.width) as i32,
-                &mut *map,
+                &*map,
             );
             if path.success && path.steps.len() > 1 {
-                let mut idx = map.xy_idx(pos.x, pos.y);
-                map.blocked[idx] = false;
+                let idx = map.xy_idx(pos.x, pos.y);
                 pos.x = path.steps[1] as i32 % map.width;
                 pos.y = path.steps[1] as i32 / map.width;
                 entity_moved
                     .insert(entity, EntityMoved {})
                     .expect("Unable to insert marker");
-                idx = map.xy_idx(pos.x, pos.y);
-                map.blocked[idx] = true;
+                let new_idx = map.xy_idx(pos.x, pos.y);
+                crate::spatial::move_entity(entity, idx, new_idx);
                 viewshed.dirty = true;
             }
         }

@@ -12,6 +12,7 @@ pub mod random_table;
 mod raws;
 mod rect;
 mod rex_assets;
+mod spatial;
 mod spawner;
 mod systems;
 

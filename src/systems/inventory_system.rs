@@ -116,9 +116,7 @@ impl<'a> System<'a> for ItemUseSystem {
                         None => {
                             // Single target in tile
                             let idx = map.xy_idx(target.x, target.y);
-                            for mob in map.tile_content[idx].iter() {
-                                targets.push(*mob);
-                            }
+                            crate::spatial::for_each_tile_content(idx, |mob| targets.push(mob));
                         }
                         Some(area_effect) => {
                             // AOE
@@ -129,9 +127,7 @@ impl<'a> System<'a> for ItemUseSystem {
                             });
                             for tile_idx in blast_tiles.iter() {
                                 let idx = map.xy_idx(tile_idx.x, tile_idx.y);
-                                for mob in map.tile_content[idx].iter() {
-                                    targets.push(*mob);
-                                }
+                                crate::spatial::for_each_tile_content(idx, |mob| targets.push(mob));
                                 particle_builder.request(
                                     tile_idx.x,
                                     tile_idx.y,
@@ -264,16 +260,16 @@ impl<'a> System<'a> for ItemUseSystem {
                     let target_point = useitem.target.unwrap();
                     let idx = map.xy_idx(target_point.x, target_point.y);
                     used_item = false;
-                    for mob in map.tile_content[idx].iter() {
-                        SufferDamage::new_damage(&mut suffer_damage, *mob, damage.damage, true);
+                    crate::spatial::for_each_tile_content(idx, |mob| {
+                        SufferDamage::new_damage(&mut suffer_damage, mob, damage.damage, true);
                         if entity == *player_entity {
-                            let mob_name = names.get(*mob).unwrap();
+                            let mob_name = names.get(mob).unwrap();
                             let item_name = names.get(useitem.item).unwrap();
                             log.entries.push(format!(
                                 "You use {} on {}, inflicting {} hp.",
                                 item_name.name, mob_name.name, damage.damage
                             ));
-                            let pos = positions.get(*mob);
+                            let pos = positions.get(mob);
                             if let Some(pos) = pos {
                                 particle_builder.request(
                                     pos.x,
@@ -286,7 +282,7 @@ impl<'a> System<'a> for ItemUseSystem {
                             }
                         }
                         used_item = true;
-                    }
+                    });
                 }
             }
             // Can it pass along confusion?
