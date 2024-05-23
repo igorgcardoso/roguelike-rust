@@ -2,7 +2,7 @@ use crate::{raws::Reaction, Attributes};
 
 use super::{
     gamelog::GameLog, BlocksTile, BlocksVisibility, Door, EntityMoved, Faction, HungerClock,
-    HungerState, Item, Map, Player, Pools, Position, Renderable, RunState, State, TileType,
+    HungerState, Item, Map, Player, Pools, Position, Renderable, RunState, State, TileType, Vendor,
     Viewshed, WantsToMelee, WantsToPickupItem,
 };
 use rltk::{Point, Rltk, VirtualKeyCode};
@@ -23,6 +23,7 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState 
     let mut block_movement = ecs.write_storage::<BlocksTile>();
     let mut rendarables = ecs.write_storage::<Renderable>();
     let factions = ecs.read_storage::<Faction>();
+    let vendors = ecs.read_storage::<Vendor>();
 
     let mut result = RunState::AwaitingInput;
 
@@ -39,6 +40,12 @@ pub fn try_move_player(delta_x: i32, delta_y: i32, ecs: &mut World) -> RunState 
         result = crate::spatial::for_each_tile_content_with_gamemode(
             destination_idx,
             |potential_target| {
+                if let Some(_vendor) = vendors.get(potential_target) {
+                    return Some(RunState::ShowVendor {
+                        vendor: potential_target,
+                        mode: crate::VendorMode::Sell,
+                    });
+                }
                 let mut hostile = true;
                 if combat_stats.get(potential_target).is_some() {
                     if let Some(faction) = factions.get(potential_target) {

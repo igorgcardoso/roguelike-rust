@@ -1,8 +1,8 @@
 use super::{
     attribute_bonus, mana_at_level, player_hp_at_level, random_table::RandomTable, raws::*,
-    Attribute, Attributes, Faction, HungerClock, HungerState, Initiative, LightSource, Map, Name,
-    Player, Pool, Pools, Position, Rect, Renderable, SerializeMe, Skill, Skills, TileType,
-    Viewshed,
+    Attribute, Attributes, EquipmentChanged, Faction, HungerClock, HungerState, Initiative,
+    LightSource, Map, Name, Player, Pool, Pools, Position, Rect, Renderable, SerializeMe, Skill,
+    Skills, TileType, Viewshed,
 };
 use rltk::{RandomNumberGenerator, RGB};
 use specs::prelude::*;
@@ -80,6 +80,9 @@ pub fn player(ecs: &mut World, player_x: i32, player_y: i32) -> Entity {
             },
             xp: 0,
             level: 1,
+            total_weight: 0.0,
+            total_initiative_penalty: 0.0,
+            gold: 0.0,
         })
         .with(LightSource {
             color: rltk::RGB::from_f32(1.0, 1.0, 0.5),
@@ -89,6 +92,7 @@ pub fn player(ecs: &mut World, player_x: i32, player_y: i32) -> Entity {
         .with(Faction {
             name: "Player".to_string(),
         })
+        .with(EquipmentChanged {})
         .marked::<SimpleMarker<SerializeMe>>()
         .build();
 

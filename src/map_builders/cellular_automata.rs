@@ -85,7 +85,7 @@ impl CellularAutomataBuilder {
             }
         }
 
-        build_data.map.tiles = new_tiles.clone();
+        build_data.map.tiles.clone_from(&new_tiles);
         build_data.take_snapshot();
     }
 }
