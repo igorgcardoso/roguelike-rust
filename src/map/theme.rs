@@ -5,6 +5,7 @@ pub fn get_tile_glyph(idx: usize, map: &Map) -> (rltk::FontCharType, RGB, RGB) {
     let (glyph, mut fg, mut bg) = match map.depth {
         2 => get_forest_glyph(idx, map),
         3 => get_limestone_cavern_glyph(idx, map),
+        4 => get_limestone_cavern_glyph(idx, map),
         _ => get_tile_glyph_default(idx, map),
     };
 
@@ -191,7 +192,7 @@ fn get_limestone_cavern_glyph(idx: usize, map: &Map) -> (rltk::FontCharType, RGB
     match map.tiles[idx] {
         TileType::Wall => {
             glyph = rltk::to_cp437('▒');
-            fg = RGB::from_f32(0.7, 0.7, 0.7);
+            fg = RGB::from_f32(0.2, 0.2, 1.0);
         }
         TileType::Bridge => {
             glyph = rltk::to_cp437('.');

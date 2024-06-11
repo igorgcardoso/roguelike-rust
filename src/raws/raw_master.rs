@@ -475,6 +475,7 @@ pub fn spawn_named_mob(
             } else {
                 0.0
             },
+            god_mode: false,
         };
         entity_builder = entity_builder.with(pools);
 
@@ -612,6 +613,18 @@ pub fn spawn_named_prop(
                     _ => {}
                 }
             }
+        }
+
+        if let Some(light) = &prop_template.light {
+            entity_builder = entity_builder.with(LightSource {
+                range: light.range,
+                color: rltk::RGB::from_hex(&light.color).expect("Bad color"),
+            });
+            entity_builder = entity_builder.with(Viewshed {
+                range: light.range,
+                dirty: true,
+                visible_tiles: Vec::new(),
+            });
         }
 
         return Some(entity_builder.build());
