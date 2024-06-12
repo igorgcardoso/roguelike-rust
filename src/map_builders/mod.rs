@@ -29,7 +29,9 @@ use dla::DLABuilder;
 use door_placement::DoorPlacement;
 use drunkward::DrunkardsWalkBuilder;
 use forest::forest_builder;
-use limestone_cavern::{limestone_cavern_builder, limestone_deep_cavern_builder};
+use limestone_cavern::{
+    limestone_cavern_builder, limestone_deep_cavern_builder, limestone_transition_builder,
+};
 use maze::MazeBuilder;
 use prefab_builder::PrefabBuilder;
 use room_based::{
@@ -303,6 +305,7 @@ pub fn level_builder(
         2 => forest_builder(new_depth, rng, width, height),
         3 => limestone_cavern_builder(new_depth, rng, width, height),
         4 => limestone_deep_cavern_builder(new_depth, rng, width, height),
+        5 => limestone_transition_builder(new_depth, rng, width, height),
         _ => random_builder(new_depth, rng, width, height),
     }
 }
