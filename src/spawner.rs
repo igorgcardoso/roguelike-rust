@@ -1,8 +1,9 @@
 use super::{
     attribute_bonus, mana_at_level, player_hp_at_level, random_table::RandomTable, raws::*,
-    Attribute, Attributes, EquipmentChanged, Faction, HungerClock, HungerState, Initiative,
-    LightSource, Map, Name, Player, Pool, Pools, Position, Rect, Renderable, SerializeMe, Skill,
-    Skills, TileType, Viewshed,
+    Attribute, Attributes, EntryTrigger, EquipmentChanged, Faction, HungerClock, HungerState,
+    Initiative, LightSource, Map, MasterDungeonMap, Name, OtherLevelPosition, Player, Pool, Pools,
+    Position, Rect, Renderable, SerializeMe, SingleActivation, Skill, Skills, TeleportTo, TileType,
+    Viewshed,
 };
 use rltk::{RandomNumberGenerator, RGB};
 use specs::prelude::*;
@@ -133,6 +134,12 @@ pub fn player(ecs: &mut World, player_x: i32, player_y: i32) -> Entity {
         "Old Boots",
         SpawnType::Equipped { by: player },
     );
+    spawn_named_entity(
+        &RAWS.lock().unwrap(),
+        ecs,
+        "Town Portal Scroll",
+        SpawnType::Carried { by: player },
+    );
 
     player
 }
@@ -227,4 +234,56 @@ pub fn spawn_entity(ecs: &mut World, spawn: &(&usize, &String)) {
         "WARNING: We don't know how to spawn [{}]!",
         spawn.1
     ));
+}
+
+pub fn spawn_town_portal(ecs: &mut World) {
+    // Get current position and depth
+    let map = ecs.fetch::<Map>();
+    let player_depth = map.depth;
+    let player_pos = ecs.fetch::<rltk::Point>();
+    let player_x = player_pos.x;
+    let player_y = player_pos.y;
+
+    drop(player_pos);
+    drop(map);
+
+    // Find part of the town for the portal
+    let dungeon_master = ecs.fetch::<MasterDungeonMap>();
+    let town_map = dungeon_master.get_map(1).unwrap();
+    let mut stairs_idx = 0;
+    for (idx, tile_type) in town_map.tiles.iter().enumerate() {
+        if *tile_type == TileType::DownStairs {
+            stairs_idx = idx;
+        }
+    }
+    let portal_x = (stairs_idx as i32 % town_map.width) - 2;
+    let portal_y = stairs_idx as i32 / town_map.width;
+
+    drop(dungeon_master);
+
+    // Spawn the portal itself
+    ecs.create_entity()
+        .with(OtherLevelPosition {
+            x: portal_x,
+            y: portal_y,
+            depth: 1,
+        })
+        .with(Renderable {
+            glyph: rltk::to_cp437('♥'),
+            fg: RGB::named(rltk::CYAN),
+            bg: RGB::named(rltk::BLACK),
+            render_order: 0,
+        })
+        .with(EntryTrigger {})
+        .with(TeleportTo {
+            x: player_x,
+            y: player_y,
+            depth: player_depth,
+            player_only: true,
+        })
+        .with(Name {
+            name: "Town Portal".to_string(),
+        })
+        .with(SingleActivation {})
+        .build();
 }

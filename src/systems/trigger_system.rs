@@ -1,6 +1,6 @@
 use super::{
-    gamelog::GameLog, EntityMoved, EntryTrigger, Hidden, InflictsDamage, Map, Name,
-    ParticleBuilder, Position, SingleActivation, SufferDamage,
+    gamelog::GameLog, ApplyTeleport, EntityMoved, EntryTrigger, Hidden, InflictsDamage, Map, Name,
+    ParticleBuilder, Position, SingleActivation, SufferDamage, TeleportTo,
 };
 use specs::prelude::*;
 
@@ -21,6 +21,9 @@ impl<'a> System<'a> for TriggerSystem {
         WriteExpect<'a, ParticleBuilder>,
         WriteStorage<'a, SufferDamage>,
         ReadStorage<'a, SingleActivation>,
+        ReadStorage<'a, TeleportTo>,
+        WriteStorage<'a, ApplyTeleport>,
+        ReadExpect<'a, Entity>,
     );
 
     fn run(&mut self, data: Self::SystemData) {
@@ -37,6 +40,9 @@ impl<'a> System<'a> for TriggerSystem {
             mut particle_builder,
             mut inflict_damage,
             single_activation,
+            teleporters,
+            mut apply_teleport,
+            player_entity,
         ) = data;
 
         // Iterate the entities that moved and their final position
@@ -75,6 +81,22 @@ impl<'a> System<'a> for TriggerSystem {
                                     damage.damage,
                                     false,
                                 );
+                            }
+
+                            // If its a teleporter, then do that
+                            if let Some(teleport) = teleporters.get(entity_id) {
+                                if !teleport.player_only || entity == *player_entity {
+                                    apply_teleport
+                                        .insert(
+                                            entity,
+                                            ApplyTeleport {
+                                                destination_x: teleport.x,
+                                                destination_y: teleport.y,
+                                                destination_depth: teleport.depth,
+                                            },
+                                        )
+                                        .expect("Unable to insert");
+                                }
                             }
 
                             // If it is single activation, it needs to be removed

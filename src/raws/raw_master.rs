@@ -265,6 +265,9 @@ pub fn spawn_named_item(
                     "magic_mapping" => {
                         entity_builder = entity_builder.with(MagicMapper {});
                     }
+                    "town_portal" => {
+                        entity_builder = entity_builder.with(TownPortal {});
+                    }
                     "food" => {
                         entity_builder = entity_builder.with(ProvidesFood {});
                     }

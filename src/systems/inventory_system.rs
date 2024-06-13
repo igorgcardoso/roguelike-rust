@@ -1,8 +1,8 @@
 use super::{
     gamelog::GameLog, AreaOfEffect, Confusion, Consumable, EquipmentChanged, Equippable, Equipped,
     HungerClock, HungerState, InBackpack, InflictsDamage, MagicMapper, Map, Name, ParticleBuilder,
-    Pools, Position, ProvidesFood, ProvidesHealing, RunState, SufferDamage, WantsToDropItem,
-    WantsToPickupItem, WantsToRemoveItem, WantsToUseItem,
+    Pools, Position, ProvidesFood, ProvidesHealing, RunState, SufferDamage, TownPortal,
+    WantsToDropItem, WantsToPickupItem, WantsToRemoveItem, WantsToUseItem,
 };
 use specs::prelude::*;
 
@@ -85,6 +85,7 @@ impl<'a> System<'a> for ItemUseSystem {
         ReadStorage<'a, MagicMapper>,
         WriteExpect<'a, RunState>,
         WriteStorage<'a, EquipmentChanged>,
+        ReadStorage<'a, TownPortal>,
     );
 
     #[allow(clippy::cognitive_complexity)]
@@ -113,6 +114,7 @@ impl<'a> System<'a> for ItemUseSystem {
             magic_mapper,
             mut runstate,
             mut dirty,
+            town_portal,
         ) = data;
 
         for (entity, useitem) in (&entities, &wants_use).join() {
@@ -229,6 +231,19 @@ impl<'a> System<'a> for ItemUseSystem {
                     used_item = true;
                     log.entries.push("The map is revealed to you!".to_string());
                     *runstate = RunState::MagicMapReveal { row: 0 };
+                }
+            }
+            // If its a town portal...
+            if let Some(_town_portal) = town_portal.get(useitem.item) {
+                if map.depth == 1 {
+                    used_item = false;
+                    log.entries
+                        .push("You are already in town, so the scroll does nothing".to_string());
+                } else {
+                    used_item = true;
+                    log.entries
+                        .push("You are teleported back to town!".to_string());
+                    *runstate = RunState::TownPortal;
                 }
             }
             // If it heals, apply the healing

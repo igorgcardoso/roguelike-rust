@@ -109,7 +109,11 @@ pub fn save_game(ecs: &mut World) {
             MoveMode,
             Chasing,
             EquipmentChanged,
-            Vendor
+            Vendor,
+            TownPortal,
+            TeleportTo,
+            ApplyMove,
+            ApplyTeleport
         );
     }
 
@@ -218,7 +222,11 @@ pub fn load_game(ecs: &mut World) {
             MoveMode,
             Chasing,
             EquipmentChanged,
-            Vendor
+            Vendor,
+            TownPortal,
+            TeleportTo,
+            ApplyMove,
+            ApplyTeleport
         );
     }
 
