@@ -1,4 +1,4 @@
-use super::{
+use crate::{
     gamelog::GameLog, mana_at_level, player_hp_at_level, Attributes, Equipped, InBackpack,
     LootTable, Map, Name, ParticleBuilder, Player, Pools, Position, RunState, SufferDamage,
 };

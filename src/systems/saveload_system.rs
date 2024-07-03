@@ -1,4 +1,4 @@
-use super::components::*;
+use crate::components::*;
 use specs::prelude::*;
 use specs::saveload::{
     DeserializeComponents, MarkedBuilder, SerializeComponents, SimpleMarker, SimpleMarkerAllocator,
@@ -25,9 +25,9 @@ macro_rules! serialize_individually {
 #[cfg(not(target_arch = "wasm32"))]
 pub fn save_game(ecs: &mut World) {
     // Create helper
-    let mapcopy = ecs.get_mut::<super::map::Map>().unwrap().clone();
+    let mapcopy = ecs.get_mut::<crate::map::Map>().unwrap().clone();
     let dungeon_master = ecs
-        .get_mut::<super::map::MasterDungeonMap>()
+        .get_mut::<crate::map::MasterDungeonMap>()
         .unwrap()
         .clone();
 
@@ -113,7 +113,10 @@ pub fn save_game(ecs: &mut World) {
             TownPortal,
             TeleportTo,
             ApplyMove,
-            ApplyTeleport
+            ApplyTeleport,
+            MagicItem,
+            ObfuscatedName,
+            IdentifiedItem
         );
     }
 
@@ -226,7 +229,10 @@ pub fn load_game(ecs: &mut World) {
             TownPortal,
             TeleportTo,
             ApplyMove,
-            ApplyTeleport
+            ApplyTeleport,
+            MagicItem,
+            ObfuscatedName,
+            IdentifiedItem
         );
     }
 
@@ -239,13 +245,13 @@ pub fn load_game(ecs: &mut World) {
         let player = ecs.read_storage::<Player>();
         let position = ecs.read_storage::<Position>();
         for (e, h) in (&entities, &helper).join() {
-            let mut worldmap = ecs.write_resource::<super::map::Map>();
+            let mut worldmap = ecs.write_resource::<crate::map::Map>();
             *worldmap = h.map.clone();
             crate::spatial::set_size((worldmap.height * worldmap.width) as usize);
             deleteme = Some(e);
         }
         for (e, h) in (&entities, &helper2).join() {
-            let mut dungeon_master = ecs.write_resource::<super::map::MasterDungeonMap>();
+            let mut dungeon_master = ecs.write_resource::<crate::map::MasterDungeonMap>();
             *dungeon_master = h.map.clone();
             deleteme2 = Some(e);
         }

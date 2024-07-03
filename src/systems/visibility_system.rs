@@ -1,4 +1,4 @@
-use super::{gamelog::GameLog, BlocksVisibility, Hidden, Map, Name, Player, Position, Viewshed};
+use crate::{gamelog::GameLog, BlocksVisibility, Hidden, Map, Name, Player, Position, Viewshed};
 use rltk::{field_of_view, Point};
 use specs::prelude::*;
 

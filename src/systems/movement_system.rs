@@ -1,4 +1,4 @@
-use super::{
+use crate::{
     ApplyMove, ApplyTeleport, EntityMoved, Map, OtherLevelPosition, Position, RunState, Viewshed,
 };
 use specs::prelude::*;

@@ -182,6 +182,7 @@ pub fn get_item_drop(
     }
     None
 }
+
 pub fn parse_dice_string(dice: &str) -> (i32, i32, i32) {
     lazy_static! {
         static ref DICE_RE: Regex = Regex::new(r"(\d+)d(\d+)([\+\-]\d+)?").unwrap();
@@ -212,6 +213,13 @@ pub fn spawn_named_item(
 ) -> Option<Entity> {
     if raws.item_index.contains_key(key) {
         let item_template = &raws.raws.items[raws.item_index[key]];
+
+        let dungeon_master = ecs.fetch::<crate::map::MasterDungeonMap>();
+        let scroll_names = dungeon_master.scroll_mappings.clone();
+        let potion_names = dungeon_master.potion_mappings.clone();
+        let identified = dungeon_master.identified_items.clone();
+
+        drop(dungeon_master);
 
         let mut entity_builder = ecs.create_entity().marked::<SimpleMarker<SerializeMe>>();
 
@@ -307,6 +315,35 @@ pub fn spawn_named_item(
                 armor_class: wearable.armor_class,
                 slot,
             });
+        }
+
+        if let Some(magic) = &item_template.magic {
+            let class = match magic.class.as_str() {
+                "rare" => MagicItemClass::Rare,
+                "legendary" => MagicItemClass::Legendary,
+                _ => MagicItemClass::Common,
+            };
+            entity_builder = entity_builder.with(MagicItem { class });
+
+            if !identified.contains(&item_template.name) {
+                match magic.naming.as_str() {
+                    "scroll" => {
+                        entity_builder = entity_builder.with(ObfuscatedName {
+                            name: scroll_names[&item_template.name].clone(),
+                        });
+                    }
+                    "potion" => {
+                        entity_builder = entity_builder.with(ObfuscatedName {
+                            name: potion_names[&item_template.name].clone(),
+                        });
+                    }
+                    _ => {
+                        entity_builder = entity_builder.with(ObfuscatedName {
+                            name: magic.naming.clone(),
+                        });
+                    }
+                }
+            }
         }
 
         return Some(entity_builder.build());
@@ -697,6 +734,46 @@ pub fn get_vendor_items(categories: &[String], raws: &RawMaster) -> Vec<(String,
         if let Some(category) = &item.vendor_category {
             if categories.contains(category) {
                 result.push((item.name.clone(), item.base_value.unwrap()));
+            }
+        }
+    }
+
+    result
+}
+
+pub fn get_scroll_tags() -> Vec<String> {
+    let raws = &super::RAWS.lock().unwrap();
+    let mut result = Vec::new();
+
+    for item in raws.raws.items.iter() {
+        if let Some(magic) = &item.magic {
+            if &magic.naming == "scroll" {
+                result.push(item.name.clone());
+            }
+        }
+    }
+
+    result
+}
+
+pub fn is_tag_magic(tag: &str) -> bool {
+    let raws = &super::RAWS.lock().unwrap();
+    if raws.item_index.contains_key(tag) {
+        let item_template = &raws.raws.items[raws.item_index[tag]];
+        item_template.magic.is_some()
+    } else {
+        false
+    }
+}
+
+pub fn get_potion_tags() -> Vec<String> {
+    let raws = &super::RAWS.lock().unwrap();
+    let mut result = Vec::new();
+
+    for item in raws.raws.items.iter() {
+        if let Some(magic) = &item.magic {
+            if &magic.naming == "potion" {
+                result.push(item.name.clone());
             }
         }
     }

@@ -1,4 +1,4 @@
-use super::{
+use crate::{
     gamelog::GameLog, ApplyTeleport, EntityMoved, EntryTrigger, Hidden, InflictsDamage, Map, Name,
     ParticleBuilder, Position, SingleActivation, SufferDamage, TeleportTo,
 };

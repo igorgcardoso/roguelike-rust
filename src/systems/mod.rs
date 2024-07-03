@@ -15,5 +15,3 @@ pub use self::{
     map_indexing_system::*, melee_combat_system::*, particle_system::*, saveload_system::*,
     trigger_system::*, visibility_system::*,
 };
-
-use super::*;

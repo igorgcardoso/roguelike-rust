@@ -1,4 +1,4 @@
-use super::{LightSource, Map, Position, Viewshed};
+use crate::{LightSource, Map, Position, Viewshed};
 use rltk::RGB;
 use specs::prelude::*;
 

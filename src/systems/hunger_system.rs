@@ -1,4 +1,4 @@
-use super::{gamelog::GameLog, HungerClock, HungerState, MyTurn, SufferDamage};
+use crate::{gamelog::GameLog, HungerClock, HungerState, MyTurn, SufferDamage};
 use specs::prelude::*;
 
 pub struct HungerSystem {}

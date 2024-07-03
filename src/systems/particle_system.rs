@@ -1,4 +1,4 @@
-use super::{ParticleLifetime, Position, Renderable, Rltk};
+use crate::{ParticleLifetime, Position, Renderable, Rltk};
 use specs::prelude::*;
 
 pub fn cull_dead_particles(ecs: &mut World, ctx: &Rltk) {

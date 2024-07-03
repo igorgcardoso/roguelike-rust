@@ -275,6 +275,28 @@ impl GameState for State {
                         }
                     }
                     gui::VendorResult::BuyMode => {
+                        let tag = result.2.unwrap();
+                        let price = result.3.unwrap();
+                        let mut pools = self.ecs.write_storage::<Pools>();
+                        let player_entity = self.ecs.fetch::<Entity>();
+                        let mut identified = self.ecs.write_storage::<IdentifiedItem>();
+                        identified
+                            .insert(*player_entity, IdentifiedItem { name: tag.clone() })
+                            .expect("Unable to insert");
+                        drop(identified);
+                        let player_pools = pools.get_mut(*player_entity).unwrap();
+                        drop(player_entity);
+                        if player_pools.gold >= price {
+                            player_pools.gold -= price;
+                            drop(pools);
+                            let player_entity = *self.ecs.fetch::<Entity>();
+                            crate::raws::spawn_named_item(
+                                &RAWS.lock().unwrap(),
+                                &mut self.ecs,
+                                &tag,
+                                SpawnType::Carried { by: player_entity },
+                            );
+                        }
                         newrunstate = RunState::ShowVendor {
                             vendor,
                             mode: VendorMode::Buy,
@@ -472,6 +494,9 @@ impl State {
         let mut pickup = ItemCollectionSystem {};
         pickup.run_now(&self.ecs);
 
+        let mut item_id = inventory_system::ItemIdentificationSystem {};
+        item_id.run_now(&self.ecs);
+
         let mut potions = ItemUseSystem {};
         potions.run_now(&self.ecs);
 
@@ -618,16 +643,19 @@ fn main() -> rltk::BError {
     gs.ecs.register::<TeleportTo>();
     gs.ecs.register::<ApplyMove>();
     gs.ecs.register::<ApplyTeleport>();
+    gs.ecs.register::<MagicItem>();
+    gs.ecs.register::<ObfuscatedName>();
+    gs.ecs.register::<IdentifiedItem>();
 
     gs.ecs.insert(particle_system::ParticleBuilder::new());
     gs.ecs.insert(SimpleMarkerAllocator::<SerializeMe>::new());
     gs.ecs.insert(rltk::RandomNumberGenerator::new());
 
+    raws::load_raws();
+
     gs.ecs.insert(map::MasterDungeonMap::new());
     gs.ecs.insert(Map::new(1, 64, 64, "New Map"));
     gs.ecs.insert(Point::new(0, 0));
-
-    raws::load_raws();
 
     let player_entity = spawner::player(&mut gs.ecs, 0, 0);
     gs.ecs.insert(player_entity);
