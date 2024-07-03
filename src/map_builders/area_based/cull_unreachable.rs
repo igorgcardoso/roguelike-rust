@@ -35,7 +35,7 @@ impl CullUnreachable {
             if *tile_type == TileType::Floor {
                 let distance_to_start = dijkstra_map.map[i];
                 // We can't get to this tile - so we'll make it a wall
-                if distance_to_start == std::f32::MAX {
+                if distance_to_start == f32::MAX {
                     *tile_type = TileType::Wall;
                 }
             }

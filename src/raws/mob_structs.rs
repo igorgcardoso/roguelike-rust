@@ -14,8 +14,6 @@ pub struct Mob {
     pub attributes: MobAttributes,
     pub skills: Option<HashMap<String, i32>>,
     pub level: Option<i32>,
-    pub hp: Option<i32>,
-    pub mana: Option<i32>,
     pub equipped: Option<Vec<String>>,
     pub natural: Option<MobNatural>,
     pub loot_table: Option<String>,
@@ -23,14 +21,6 @@ pub struct Mob {
     pub faction: Option<String>,
     pub gold: Option<String>,
     pub vendor: Option<Vec<String>>,
-}
-
-#[derive(Deserialize, Debug)]
-pub struct MobStats {
-    pub max_hp: i32,
-    pub hp: i32,
-    pub power: i32,
-    pub defense: i32,
 }
 
 #[derive(Deserialize, Debug)]
