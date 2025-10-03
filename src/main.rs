@@ -2,6 +2,7 @@ extern crate serde;
 mod ai;
 pub mod camera;
 mod components;
+mod effects;
 pub mod game_system;
 mod gamelog;
 mod gui;
@@ -444,9 +445,6 @@ impl State {
         let mut vis = VisibilitySystem {};
         vis.run_now(&self.ecs);
 
-        let mut lighting = LightingSystem {};
-        lighting.run_now(&self.ecs);
-
         let mut mapindex = MapIndexingSystem {};
         mapindex.run_now(&self.ecs);
 
@@ -509,8 +507,13 @@ impl State {
         let mut hunger = HungerSystem {};
         hunger.run_now(&self.ecs);
 
+        effects::run_effects_queue(&mut self.ecs);
+
         let mut particles = particle_system::ParticleSpawnSystem {};
         particles.run_now(&self.ecs);
+
+        let mut lighting = LightingSystem {};
+        lighting.run_now(&self.ecs);
 
         self.ecs.maintain();
     }
@@ -612,6 +615,8 @@ fn main() -> rltk::BError {
     gs.ecs.register::<Wearable>();
     gs.ecs.register::<WantsToRemoveItem>();
     gs.ecs.register::<ParticleLifetime>();
+    gs.ecs.register::<SpawnParticleBurst>();
+    gs.ecs.register::<SpawnParticleLine>();
     gs.ecs.register::<HungerClock>();
     gs.ecs.register::<ProvidesFood>();
     gs.ecs.register::<MagicMapper>();

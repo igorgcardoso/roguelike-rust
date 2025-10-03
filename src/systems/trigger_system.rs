@@ -1,6 +1,8 @@
 use crate::{
-    gamelog::GameLog, ApplyTeleport, EntityMoved, EntryTrigger, Hidden, InflictsDamage, Map, Name,
-    ParticleBuilder, Position, SingleActivation, SufferDamage, TeleportTo,
+    effects::{add_effect, EffectType, Targets},
+    gamelog::GameLog,
+    ApplyTeleport, EntityMoved, EntryTrigger, Hidden, InflictsDamage, Map, Name, ParticleBuilder,
+    Position, SingleActivation, TeleportTo,
 };
 use specs::prelude::*;
 
@@ -19,7 +21,6 @@ impl<'a> System<'a> for TriggerSystem {
         WriteExpect<'a, GameLog>,
         ReadStorage<'a, InflictsDamage>,
         WriteExpect<'a, ParticleBuilder>,
-        WriteStorage<'a, SufferDamage>,
         ReadStorage<'a, SingleActivation>,
         ReadStorage<'a, TeleportTo>,
         WriteStorage<'a, ApplyTeleport>,
@@ -38,7 +39,6 @@ impl<'a> System<'a> for TriggerSystem {
             mut log,
             inflicts_damage,
             mut particle_builder,
-            mut inflict_damage,
             single_activation,
             teleporters,
             mut apply_teleport,
@@ -75,11 +75,12 @@ impl<'a> System<'a> for TriggerSystem {
                                     rltk::to_cp437('‼'),
                                     200.0,
                                 );
-                                SufferDamage::new_damage(
-                                    &mut inflict_damage,
-                                    entity,
-                                    damage.damage,
-                                    false,
+                                add_effect(
+                                    None,
+                                    EffectType::Damage {
+                                        amount: damage.damage,
+                                    },
+                                    Targets::Single { target: entity },
                                 );
                             }
 
